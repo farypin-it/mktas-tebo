@@ -80,52 +80,83 @@ function tutupPegawaiSekolahPage() {
   if (secSekolah) { secSekolah.classList.add('active'); }
 }
 
-async function loadPegawaiSekolahInline(schoolId) {
+function renderPegawaiSekolahInlineRows(tbody, staffList, schoolId) {
+  if (!tbody) return;
+  // Update allPegawaiData agar openEditStaff bisa menemukan item
+  staffList.forEach(item => {
+    const idx = allPegawaiData.findIndex(p => p.id === item.id);
+    if (idx >= 0) allPegawaiData[idx] = item;
+    else allPegawaiData.push(item);
+  });
+
+  let html = '';
+  if (staffList.length === 0) {
+    html = `<tr><td colspan="4" style="text-align:center; color: var(--text-muted);">Belum ada pegawai.</td></tr>`;
+  } else {
+    staffList.forEach(item => {
+      const displayName = item.nama_lengkap || item.nama || '-';
+      const displayJabatan = item.nama_jabatan_tugas || item.jabatan_tugas || item.nama_jabatan_sk || item.jabatan_sk || item.jabatan || '-';
+      html += `
+        <tr>
+          <td><b>${displayName}</b><br><small style="color: var(--text-muted);white-space:nowrap;">NIP: ${item.nip || '-'}</small></td>
+          <td><span style="background: var(--bg-gradient-end); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;">${displayJabatan}</span></td>
+          <td>${item.no_wa || item.no_hp || '-'}</td>
+          <td style="text-align: center; white-space: nowrap;">
+            ${currentUser && currentUser.role === 'Admin' ? '<span class="text-muted" style="font-size:0.85rem;">-</span>' : `
+              <button class="btn btn-sm btn-outline" onclick="openEditStaff('${item.id}')" title="Edit"><i class="fas fa-edit"></i></button>
+              <button class="btn btn-sm btn-danger" onclick="deleteStaff('${item.id}', '${schoolId}')" title="Hapus"><i class="fas fa-trash"></i></button>
+            `}
+          </td>
+        </tr>
+      `;
+    });
+  }
+  tbody.innerHTML = html;
+}
+
+async function loadPegawaiSekolahInline(schoolId, forceRefresh = false) {
   const tbody = document.querySelector('#table-pegawai-sekolah-inline tbody');
   const loader = document.getElementById('loader-pegawai-sekolah-inline');
   if (!tbody) return;
 
   if (loader) loader.classList.add('hidden');
-  tbody.innerHTML = '<tr><td colspan="4" class="table-loading-cell"><div class="loader"></div><div>Memuat data pegawai sekolah...</div></td></tr>';
 
+  const cacheKey = `mktas_staff_${schoolId}`;
+  const localStaff = (typeof safeReadJsonStorage === 'function')
+    ? safeReadJsonStorage(cacheKey, [])
+    : JSON.parse(localStorage.getItem(cacheKey) || '[]');
+  const cachedVer = localStorage.getItem('mktas_data_version') || '';
+
+  // 1. Tampilkan dari cache seketika jika ada (0 ms)
+  if (Array.isArray(localStaff) && localStaff.length > 0 && !forceRefresh) {
+    renderPegawaiSekolahInlineRows(tbody, localStaff, schoolId);
+  } else {
+    tbody.innerHTML = '<tr><td colspan="4" class="table-loading-cell"><div class="loader"></div><div>Memuat data pegawai sekolah...</div></td></tr>';
+  }
+
+  // 2. Cek versi data di latar belakang
   try {
-    const result = await fetchAPI('getStaff', { school_id: schoolId });
-    if (result.status === 'success') {
-      // Update allPegawaiData agar openEditStaff bisa menemukan item
-      result.data.forEach(item => {
-        const idx = allPegawaiData.findIndex(p => p.id === item.id);
-        if (idx >= 0) allPegawaiData[idx] = item;
-        else allPegawaiData.push(item);
-      });
+    const vRes = await fetchAPI('getDataVersion', {});
+    const serverVer = (vRes && vRes.status === 'success' && vRes.version) ? String(vRes.version) : '';
 
-      let html = '';
-      if (result.data.length === 0) {
-        html = `<tr><td colspan="4" style="text-align:center; color: var(--text-muted);">Belum ada pegawai.</td></tr>`;
-      } else {
-        result.data.forEach(item => {
-          const displayName = item.nama_lengkap || item.nama || '-';
-          const displayJabatan = item.nama_jabatan_tugas || item.jabatan_tugas || item.nama_jabatan_sk || item.jabatan_sk || item.jabatan || '-';
-          html += `
-            <tr>
-              <td><b>${displayName}</b><br><small style="color: var(--text-muted);white-space:nowrap;">NIP: ${item.nip || '-'}</small></td>
-              <td><span style="background: var(--bg-gradient-end); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;">${displayJabatan}</span></td>
-              <td>${item.no_wa || item.no_hp || '-'}</td>
-              <td style="text-align: center; white-space: nowrap;">
-                ${currentUser && currentUser.role === 'Admin' ? '<span class="text-muted" style="font-size:0.85rem;">-</span>' : `
-                  <button class="btn btn-sm btn-outline" onclick="openEditStaff('${item.id}')" title="Edit"><i class="fas fa-edit"></i></button>
-                  <button class="btn btn-sm btn-danger" onclick="deleteStaff('${item.id}', '${schoolId}')" title="Hapus"><i class="fas fa-trash"></i></button>
-                `}
-              </td>
-            </tr>
-          `;
-        });
-      }
-      tbody.innerHTML = html;
+    if (serverVer && serverVer === cachedVer && Array.isArray(localStaff) && localStaff.length > 0 && !forceRefresh) {
+      return; // Versi data cocok & sudah tampil dari cache: SELESAI (0 spreadsheet calls)
+    }
+
+    const result = await fetchAPI('getStaff', { school_id: schoolId });
+    if (result.status === 'success' && Array.isArray(result.data)) {
+      if (serverVer) localStorage.setItem('mktas_data_version', serverVer);
+      try { localStorage.setItem(cacheKey, JSON.stringify(result.data)); } catch (e) {}
+      renderPegawaiSekolahInlineRows(tbody, result.data, schoolId);
+    } else if (!localStaff || localStaff.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--danger-color);">Gagal memuat data: ${result.message || 'Terjadi kesalahan'}</td></tr>`;
     }
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Gagal memuat data.</td></tr>`;
+    console.error('[loadPegawaiSekolahInline]', err);
+    if (!localStaff || localStaff.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Gagal memuat data pegawai. Periksa koneksi.</td></tr>`;
+    }
   }
-  if (loader) loader.classList.add('hidden');
 }
 
 
@@ -423,17 +454,31 @@ async function deleteStaff(id, schoolId) {
     if (res.status === "success") {
       Swal.close();
       Swal.fire("Dihapus!", res.message, "success");
+
+      // Hapus seketika dari memori & cache lokal (0 ms)
+      const targetSId = (typeof currentPegawaiSchoolId !== 'undefined' && currentPegawaiSchoolId) ? currentPegawaiSchoolId : schoolId;
+      if (targetSId) {
+        const cKey = `mktas_staff_${targetSId}`;
+        let sArr = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage(cKey, []) : [];
+        sArr = sArr.filter(p => p.id !== id);
+        try { localStorage.setItem(cKey, JSON.stringify(sArr)); } catch(e) {}
+      }
+      let allArr = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_staff_all', []) : [];
+      allArr = allArr.filter(p => p.id !== id);
+      try { localStorage.setItem('mktas_staff_all', JSON.stringify(allArr)); } catch(e) {}
+      allPegawaiData = allPegawaiData.filter(p => p.id !== id);
+
       // Reload tampilan yang sedang aktif
       if (typeof currentPegawaiSchoolId !== 'undefined' && currentPegawaiSchoolId) {
-        loadPegawaiSekolahInline(currentPegawaiSchoolId);
+        loadPegawaiSekolahInline(currentPegawaiSchoolId, true);
       } else if (schoolId) {
         if (typeof loadPegawaiSekolah === 'function') {
           loadPegawaiSekolah(schoolId);
         } else {
-          loadPegawai();
+          loadPegawai(true);
         }
       } else if (typeof loadPegawai === 'function') {
-        loadPegawai();
+        loadPegawai(true);
       }
     } else {
       Swal.close();
