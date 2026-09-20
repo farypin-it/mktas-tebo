@@ -87,28 +87,60 @@ async function loadWebPublik() {
   setTimeout(() => loadProfilOrganisasi(), 480);
 }
 
+function isNewsOwner(newsItem, user) {
+  if (!user || user.role !== 'Sekolah') return true; // Admin & Superadmin memiliki akses penuh
+  if (!newsItem) return false;
+
+  const rawCreator = String(newsItem.created_by || '').trim();
+  if (!rawCreator) return false; // Berita default/tanpa creator adalah milik Admin
+
+  const lowerCreator = rawCreator.toLowerCase();
+  if (['admin', 'superadmin', 'administrator'].includes(lowerCreator)) {
+    return false; // Dibuat oleh Admin -> terkunci bagi akun sekolah
+  }
+
+  // Identitas sekolah saat ini
+  const schoolId = String(user.school_id || '').trim().toLowerCase();
+  const username = String(user.username || '').trim().toLowerCase();
+  const userId = String(user.id || '').trim().toLowerCase();
+  const npsn = String(user.npsn || '').trim().toLowerCase();
+  const nama = String(user.nama || '').trim().toLowerCase();
+
+  return (schoolId && lowerCreator === schoolId) ||
+         (username && lowerCreator === username) ||
+         (userId && lowerCreator === userId) ||
+         (npsn && lowerCreator === npsn) ||
+         (nama && lowerCreator === nama);
+}
+
 function renderNewsTable(newsData) {
   const tbody = document.querySelector('#table-berita tbody');
   if (!tbody || !Array.isArray(newsData)) return;
 
-  const user = window.currentUser || (typeof currentUser !== 'undefined' ? currentUser : null);
+  const user = window.currentUser || (typeof currentUser !== 'undefined' ? currentUser : null) || safeReadJsonStorage('mktas_user', {});
   const isSekolah = user && user.role === 'Sekolah';
+
   tbody.innerHTML = newsData.map(n => {
-    const isOwner = !isSekolah ||
-      !n.created_by ||
-      String(n.created_by) === 'Admin' ||
-      String(n.created_by) === String(user.school_id) ||
-      String(n.created_by) === String(user.id);
+    const isOwner = isNewsOwner(n, user);
+
+    let lockTitle = "Terkunci: Berita dibuat oleh sekolah lain";
+    const rawCreator = String(n.created_by || '').trim().toLowerCase();
+    if (!rawCreator || ['admin', 'superadmin', 'administrator'].includes(rawCreator)) {
+      lockTitle = "Terkunci: Berita dibuat oleh Admin";
+    }
+
     const editBtn = isOwner
-      ? `<button class="btn btn-sm btn-outline" onclick="editNews(${JSON.stringify(n).replace(/"/g,'&quot;')})" style="padding:4px 8px;"><i class="fas fa-edit"></i> Edit</button>`
-      : `<button class="btn btn-sm btn-outline" disabled title="Berita sekolah lain" style="padding:4px 8px;color:#94a3b8;cursor:not-allowed;"><i class="fas fa-edit"></i> Edit</button>`;
+      ? `<button class="btn btn-sm btn-outline" onclick="editNews(${JSON.stringify(n).replace(/"/g,'&quot;')})" style="padding:4px 8px;" title="Edit Berita"><i class="fas fa-edit"></i> Edit</button>`
+      : `<button class="btn btn-sm btn-outline" disabled title="${lockTitle}" style="padding:4px 8px; background:#e2e8f0; color:#64748b; border:1px solid #cbd5e1; cursor:not-allowed; opacity:0.75; font-weight:500;"><i class="fa-solid fa-lock" style="font-size:0.75rem; margin-right:3px;"></i> Edit</button>`;
+
     const hapusBtn = isOwner
-      ? `<button class="btn btn-sm btn-outline" style="padding:4px 8px;color:#ef4444;" onclick="deleteNews('${n.id}')"><i class="fas fa-trash"></i> Hapus</button>`
-      : `<button class="btn btn-sm btn-outline" disabled title="Berita sekolah lain" style="padding:4px 8px;color:#cbd5e1;cursor:not-allowed;"><i class="fas fa-trash"></i> Hapus</button>`;
+      ? `<button class="btn btn-sm btn-outline" style="padding:4px 8px; color:#ef4444;" onclick="deleteNews('${n.id}')" title="Hapus Berita"><i class="fas fa-trash"></i> Hapus</button>`
+      : `<button class="btn btn-sm btn-outline" disabled title="${lockTitle}" style="padding:4px 8px; background:#e2e8f0; color:#64748b; border:1px solid #cbd5e1; cursor:not-allowed; opacity:0.75; font-weight:500;"><i class="fa-solid fa-lock" style="font-size:0.75rem; margin-right:3px;"></i> Hapus</button>`;
+
     return `
   <tr>
     <td>${n.date || '-'}</td>
-    <td>${n.title || '-'}</td>
+    <td><b>${n.title || '-'}</b></td>
     <td>${n.is_published ? '<span class="badge" style="background:#10b981;color:white;padding:2px 8px;border-radius:12px;font-size:0.8rem;">Dipublikasikan</span>' : '<span style="color:var(--text-muted)">Draft</span>'}</td>
     <td style="display:flex;gap:6px;">${editBtn}${hapusBtn}</td>
   </tr>
@@ -153,6 +185,11 @@ function formatNewsDateForInput(value) {
 }
 
 function editNews(n) {
+  const user = window.currentUser || (typeof currentUser !== 'undefined' ? currentUser : null) || safeReadJsonStorage('mktas_user', {});
+  if (!isNewsOwner(n, user)) {
+    Swal.fire('Terkunci', 'Anda hanya dapat mengedit berita yang dibuat oleh sekolah Anda sendiri.', 'warning');
+    return;
+  }
   _editNewsId = n.id;
   document.getElementById('news-title').value = n.title || '';
   document.getElementById('news-date').value = formatNewsDateForInput(n.date);
@@ -195,6 +232,11 @@ function editNews(n) {
     const localSet = safeReadJsonStorage('mktas_settings', {});
     const domainResmi = (localSet.domain_resmi || localSet.website || 'https://www.mktas-tebo.or.id').replace(/\/+$/, '');
 
+    const activeUser = window.currentUser || (typeof currentUser !== 'undefined' ? currentUser : null) || safeReadJsonStorage('mktas_user', {});
+    const creatorId = (activeUser && activeUser.role === 'Sekolah')
+      ? (activeUser.school_id || activeUser.username || activeUser.id || 'Sekolah')
+      : 'Admin';
+
     const data = {
       title: document.getElementById('news-title').value,
       date: document.getElementById('news-date').value,
@@ -202,13 +244,14 @@ function editNews(n) {
       imageUrl: imageUrl,
       content: quillEditor ? quillEditor.root.innerHTML : '',
       is_published: document.getElementById('news-published').checked ? 1 : 0,
-      domain_resmi: domainResmi
+      domain_resmi: domainResmi,
+      created_by: creatorId
     };
     
     const action = _editNewsId ? 'updateNews' : 'addNews';
     if (_editNewsId) data.id = _editNewsId;
     
-    // Simpan ke database lokal
+    // Simpan ke database lokal / online
     const res = await fetchAPI(action, data);
     
     if (res.status === 'success') {
@@ -255,13 +298,31 @@ function editNews(n) {
       document.getElementById('news-image').value = '';
       loadNews();
     } else {
-      Swal.fire('Error', 'Gagal menyimpan berita', 'error');
+      Swal.fire('Error', res.message || 'Gagal menyimpan berita', 'error');
     }
   }
 
 async function deleteNews(id) {
+  const user = window.currentUser || (typeof currentUser !== 'undefined' ? currentUser : null) || safeReadJsonStorage('mktas_user', {});
+  if (user && user.role === 'Sekolah') {
+    const cachedNews = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_news', []) : [];
+    const targetNews = cachedNews.find(item => String(item.id) === String(id));
+    if (targetNews && !isNewsOwner(targetNews, user)) {
+      Swal.fire('Terkunci', 'Anda tidak memiliki hak akses untuk menghapus berita ini.', 'warning');
+      return;
+    }
+  }
+
   const conf = await Swal.fire({ title:'Hapus berita ini?', icon:'warning', showCancelButton:true, confirmButtonText:'Hapus', confirmButtonColor:'#ef4444' });
-  if (conf.isConfirmed) { await fetchAPI('deleteNews', { id }); loadNews(); }
+  if (conf.isConfirmed) {
+    const res = await fetchAPI('deleteNews', { id });
+    if (res && res.status === 'success') {
+      Swal.fire({ icon: 'success', title: 'Dihapus!', timer: 1500, showConfirmButton: false });
+    } else {
+      Swal.fire('Gagal', (res && res.message) ? res.message : 'Gagal menghapus berita.', 'error');
+    }
+    loadNews();
+  }
 }
 
 // --- FILE REFERENSI (Web Publik) ---
