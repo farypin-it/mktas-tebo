@@ -24,6 +24,23 @@
         r.style.setProperty('--gradient-sidebar', 'linear-gradient(180deg, ' + p + ' 0%, ' + a2 + ' 100%)');
         r.style.setProperty('--gradient-accent', 'linear-gradient(135deg, ' + p + ' 0%, ' + a1 + ' 100%)');
         r.style.setProperty('--gradient-text', 'linear-gradient(135deg, ' + p + ' 0%, ' + a2 + ' 100%)');
+
+        // Terapkan Background Login Instan 0.00 Detik sebelum DOM selesai parsing
+        if (s.bg_login) {
+          var bgStyle = document.createElement('style');
+          bgStyle.id = 'instant-login-bg';
+          bgStyle.textContent = 'body { background-image: url("' + s.bg_login + '") !important; background-size: cover !important; background-position: center !important; background-attachment: fixed !important; }';
+          document.head.appendChild(bgStyle);
+        }
+
+        // Preload Logo Forum
+        if (s.logo_forum) {
+          var link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'image';
+          link.href = s.logo_forum;
+          document.head.appendChild(link);
+        }
       } catch(e) {}
     })();
   </script>
@@ -87,6 +104,22 @@
           <span style="color: #f97316;">Portal</span> <span style="color: #2563eb; margin-left: 5px;">MKTAS</span>
         </a>
         <p id="login-wilayah" style="color: #64748b; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px; display: none;"></p>
+        <script>
+          // Tampilkan Logo dan Wilayah Seketika saat elemen dibaca browser (0.00 Detik)
+          (function() {
+            try {
+              var s = JSON.parse(localStorage.getItem('mktas_settings') || '{}');
+              if (s.logo_forum) {
+                var lg = document.getElementById('login-logo-forum');
+                if (lg) { lg.src = s.logo_forum; lg.style.display = 'block'; }
+              }
+              if (s.wilayah) {
+                var wl = document.getElementById('login-wilayah');
+                if (wl) { wl.textContent = s.wilayah; wl.style.display = 'block'; }
+              }
+            } catch(e) {}
+          })();
+        </script>
         <p style="color: var(--text-muted); font-size: 0.9rem;">Masuk ke portal manajemen</p>
       </div>
 
@@ -170,46 +203,72 @@
       }
     }
 
-    // Load Logo Forum & Background Login
-    (async function loadLoginBranding() {
-      let s = JSON.parse(localStorage.getItem("mktas_settings") || "{}");
-      try {
-        if (typeof fetchAPI !== "undefined") {
-          const res = await fetchAPI("getSettings", {});
-          if (res && res.status === "success" && res.data) {
-            s = typeof mergeSettings === 'function' ? mergeSettings(s, res.data) : Object.assign(s, res.data);
-            localStorage.setItem("mktas_settings", JSON.stringify(s));
-          }
-        }
-      } catch (e) {
-        console.warn("Gagal memuat setting online:", e);
-      }
+    // 1. Terapkan Branding Login Seketika dari Cache (0.00 Detik)
+    let s = JSON.parse(localStorage.getItem("mktas_settings") || "{}");
+    const cachedVer = localStorage.getItem("mktas_data_version") || "";
 
+    function applyLoginBrandingUI(conf) {
+      if (!conf) return;
       if (typeof applyWarnaSettings === 'function') {
-        applyWarnaSettings(s);
+        applyWarnaSettings(conf);
       }
-
-      if (s.logo_forum) {
+      if (conf.logo_forum) {
         const logoImg = document.getElementById("login-logo-forum");
         if (logoImg) {
-          logoImg.src = s.logo_forum;
+          logoImg.src = conf.logo_forum;
           logoImg.style.display = "block";
         }
       }
-      if (s.wilayah) {
+      if (conf.wilayah) {
         const wilEl = document.getElementById("login-wilayah");
         if (wilEl) {
-          wilEl.textContent = s.wilayah;
+          wilEl.textContent = conf.wilayah;
           wilEl.style.display = "block";
         }
       }
-      if (s.bg_login) {
-        document.body.style.backgroundImage = `url('${s.bg_login}')`;
+      if (conf.bg_login) {
+        document.body.style.backgroundImage = `url('${conf.bg_login}')`;
         document.body.style.backgroundSize = "cover";
         document.body.style.backgroundPosition = "center";
         document.body.style.backgroundAttachment = "fixed";
       }
-    })();
+    }
+
+    applyLoginBrandingUI(s);
+
+    // 2. Cek Versi Data di Latar Belakang (Non-blocking)
+    if (typeof fetchAPI !== "undefined") {
+      fetchAPI("getDataVersion", {}).then(vRes => {
+        const serverVer = (vRes && vRes.status === 'success' && vRes.version) ? String(vRes.version) : '';
+        // Jika versi cocok dan branding sudah ada dari cache: 0 panggilan spreadsheet!
+        if (serverVer && serverVer === cachedVer && s.logo_forum) {
+          return;
+        }
+
+        // Ambil pembaruan pengaturan hanya jika versi berbeda atau cache belum ada
+        fetchAPI("getSettings", {}).then(res => {
+          if (res && res.status === "success" && res.data) {
+            s = typeof mergeSettings === 'function' ? mergeSettings(s, res.data) : Object.assign(s, res.data);
+            try {
+              localStorage.setItem("mktas_settings", JSON.stringify(s));
+              if (serverVer) localStorage.setItem("mktas_data_version", serverVer);
+            } catch (ex) {}
+            applyLoginBrandingUI(s);
+          }
+        }).catch(err => console.warn('[login] fetch settings failed:', err));
+      }).catch(err => {
+        console.warn('[login] getDataVersion check failed:', err);
+        if (!s.logo_forum) {
+          fetchAPI("getSettings", {}).then(res => {
+            if (res && res.status === "success" && res.data) {
+              s = typeof mergeSettings === 'function' ? mergeSettings(s, res.data) : Object.assign(s, res.data);
+              try { localStorage.setItem("mktas_settings", JSON.stringify(s)); } catch (ex) {}
+              applyLoginBrandingUI(s);
+            }
+          }).catch(() => {});
+        }
+      });
+    }
 
     document
       .getElementById("login-form")
