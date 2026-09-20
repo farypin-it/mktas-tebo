@@ -122,10 +122,11 @@ async function loadPegawaiSekolahInline(schoolId, forceRefresh = false) {
   if (loader) loader.classList.add('hidden');
 
   const cacheKey = `mktas_staff_${schoolId}`;
+  const verKey = `mktas_ver_staff_${schoolId}`;
   const localStaff = (typeof safeReadJsonStorage === 'function')
     ? safeReadJsonStorage(cacheKey, [])
     : JSON.parse(localStorage.getItem(cacheKey) || '[]');
-  const cachedVer = localStorage.getItem('mktas_data_version') || '';
+  const cachedVer = localStorage.getItem(verKey) || '';
 
   // 1. Tampilkan dari cache seketika jika ada (0 ms)
   if (Array.isArray(localStaff) && localStaff.length > 0 && !forceRefresh) {
@@ -145,7 +146,7 @@ async function loadPegawaiSekolahInline(schoolId, forceRefresh = false) {
 
     const result = await fetchAPI('getStaff', { school_id: schoolId });
     if (result.status === 'success' && Array.isArray(result.data)) {
-      if (serverVer) localStorage.setItem('mktas_data_version', serverVer);
+      if (serverVer) localStorage.setItem(verKey, serverVer);
       try { localStorage.setItem(cacheKey, JSON.stringify(result.data)); } catch (e) {}
       renderPegawaiSekolahInlineRows(tbody, result.data, schoolId);
     } else if (!localStaff || localStaff.length === 0) {
