@@ -10,23 +10,10 @@ let currentPegawaiPage = 1;
 let allPegawaiData = [];
 let filteredPegawaiData = [];
 
-async function loadSekolah() {
+async function loadSekolah(forceRefresh = false) {
   const tbody = document.querySelector("#table-sekolah tbody");
   const pagination = document.getElementById("pagination-sekolah");
-  if (pagination) pagination.style.visibility = "hidden";
-  if (tbody) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="4" class="table-loading-cell">
-          <div class="loader"></div>
-          <div>Memuat data sekolah...</div>
-        </td>
-      </tr>
-    `;
-  }
-  const extLoader = document.getElementById("loader-sekolah");
-  if (extLoader) extLoader.classList.add("hidden");
-  
+
   initWilayah('add');
   initWilayah('edit');
 
@@ -36,21 +23,50 @@ async function loadSekolah() {
     document.querySelectorAll(".btn-import-school, .btn-add-school").forEach(b => b.style.display = "inline-block");
   }
 
-  // Tampilkan data seketika jika ada cache lokal (0 ms)
-  const localSchools = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_schools', []) : [];
-  if (localSchools && localSchools.length > 0 && (!cachedSchools || cachedSchools.length === 0)) {
+  // 1. Tampilkan data seketika jika ada cache lokal (0 ms)
+  const localSchools = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_schools', []) : JSON.parse(localStorage.getItem('mktas_schools') || '[]');
+  const cachedVer = localStorage.getItem('mktas_data_version') || '';
+
+  if (Array.isArray(localSchools) && localSchools.length > 0 && !forceRefresh) {
     cachedSchools = localSchools;
     filterSekolah();
+    if (pagination) pagination.style.visibility = "visible";
+  } else {
+    if (pagination) pagination.style.visibility = "hidden";
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="4" class="table-loading-cell">
+            <div class="loader"></div>
+            <div>Memuat data sekolah...</div>
+          </td>
+        </tr>
+      `;
+    }
   }
 
+  const extLoader = document.getElementById("loader-sekolah");
+  if (extLoader) extLoader.classList.add("hidden");
+
+  // 2. Cek versi di latar belakang (ringan, tidak membuka spreadsheet)
   try {
+    const vRes = await fetchAPI('getDataVersion', {});
+    const serverVer = (vRes && vRes.status === 'success' && vRes.version) ? String(vRes.version) : '';
+
+    // Jika versi server cocok dengan cache dan data sudah ada: SELESAI (0 spreadsheet calls)
+    if (serverVer && serverVer === cachedVer && Array.isArray(localSchools) && localSchools.length > 0 && !forceRefresh) {
+      return;
+    }
+
     const result = await fetchAPI("getSchools");
 
     if (result.status === "success" && Array.isArray(result.data)) {
       cachedSchools = result.data;
-      try { localStorage.setItem('mktas_schools', JSON.stringify(cachedSchools)); } catch(e) {}
+      if (serverVer) localStorage.setItem('mktas_data_version', serverVer);
+      try { localStorage.setItem('mktas_schools', JSON.stringify(cachedSchools)); } catch (e) { }
       filterSekolah();
-    } else {
+      if (pagination) pagination.style.visibility = "visible";
+    } else if (!localSchools || localSchools.length === 0) {
       if (tbody) {
         tbody.innerHTML =
           `<tr><td colspan="4" style="text-align:center;color:var(--danger-color);padding:30px 20px;">Gagal memuat data: ${result.message || 'Terjadi kesalahan'}</td></tr>`;
@@ -58,13 +74,11 @@ async function loadSekolah() {
     }
   } catch (err) {
     console.error('[loadSekolah]', err);
-    if (tbody) {
+    if (tbody && (!localSchools || localSchools.length === 0)) {
       tbody.innerHTML =
-        `<tr><td colspan="4" style="text-align:center;color:var(--danger-color);padding:30px 20px;">Gagal memuat data sekolah. Periksa koneksi.</td></tr>`;
+        `<tr><td colspan="4" style="text-align:color;color:var(--danger-color);padding:30px 20px;">Gagal memuat data sekolah. Periksa koneksi.</td></tr>`;
     }
   }
-  if (pagination) pagination.style.visibility = "visible";
-  if (extLoader) extLoader.classList.add("hidden");
 }
 
 function filterSekolah() {
@@ -135,45 +149,67 @@ function renderSekolahTable() {
   tbody.innerHTML = html;
 }
 
-async function loadPegawai() {
+async function loadPegawai(forceRefresh = false) {
   const tbody = document.querySelector("#tbody-pegawai");
   const pagination = document.getElementById("btn-pegawai-prev")?.parentElement;
-  if (pagination) pagination.style.visibility = "hidden";
-  if (tbody) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="5" class="table-loading-cell">
-          <div class="loader"></div>
-          <div>Memuat data pegawai...</div>
-        </td>
-      </tr>
-    `;
+
+  const cacheKey = (currentUser && currentUser.role === "Sekolah" && currentUser.school_id)
+    ? `mktas_staff_${currentUser.school_id}`
+    : 'mktas_staff_all';
+  const localStaff = (typeof safeReadJsonStorage === 'function')
+    ? safeReadJsonStorage(cacheKey, [])
+    : JSON.parse(localStorage.getItem(cacheKey) || '[]');
+  const cachedVer = localStorage.getItem('mktas_data_version') || '';
+
+  // 1. Tampilkan data seketika jika ada cache lokal (0 ms)
+  if (Array.isArray(localStaff) && localStaff.length > 0 && !forceRefresh) {
+    allPegawaiData = localStaff;
+    populatePegawaiSchoolFilter();
+    filterPegawaiTable();
+    if (pagination) pagination.style.visibility = "visible";
+  } else {
+    if (pagination) pagination.style.visibility = "hidden";
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="table-loading-cell">
+            <div class="loader"></div>
+            <div>Memuat data pegawai...</div>
+          </td>
+        </tr>
+      `;
+    }
   }
+
   const extLoader = document.getElementById("loader-pegawai");
   if (extLoader) extLoader.classList.add("hidden");
 
+  // 2. Cek versi data di latar belakang (ringan, tanpa membuka spreadsheet)
   try {
+    const vRes = await fetchAPI('getDataVersion', {});
+    const serverVer = (vRes && vRes.status === 'success' && vRes.version) ? String(vRes.version) : '';
+
+    // Jika versi server cocok dengan cache dan data sudah tampil: SELESAI (0 panggilan spreadsheet)
+    if (serverVer && serverVer === cachedVer && Array.isArray(localStaff) && localStaff.length > 0 && !forceRefresh) {
+      return;
+    }
+
     let payload = {};
-    if (currentUser.role === "Sekolah") {
+    if (currentUser && currentUser.role === "Sekolah") {
       payload.school_id = currentUser.school_id;
     }
 
     const result = await fetchAPI("getStaff", payload);
 
-    if (result.status === "success") {
+    if (result.status === "success" && Array.isArray(result.data)) {
       allPegawaiData = result.data;
-      
-      // Populate school filter dropdown
-      const filterSekolahEl = document.getElementById("filter-pegawai-sekolah");
-      if(filterSekolahEl) {
-        const uniqueSchools = [...new Set(allPegawaiData.map(item => item.sekolah_nama))];
-        let optionsHtml = '<option value="">-- Semua Sekolah --</option>';
-        uniqueSchools.forEach(sch => optionsHtml += `<option value="${sch}">${sch}</option>`);
-        filterSekolahEl.innerHTML = optionsHtml;
-      }
-      
+      if (serverVer) localStorage.setItem('mktas_data_version', serverVer);
+      try { localStorage.setItem(cacheKey, JSON.stringify(allPegawaiData)); } catch(e) {}
+
+      populatePegawaiSchoolFilter();
       filterPegawaiTable();
-    } else {
+      if (pagination) pagination.style.visibility = "visible";
+    } else if (!localStaff || localStaff.length === 0) {
       if (tbody) {
         tbody.innerHTML =
           `<tr><td colspan="5" style="text-align:center;color:var(--danger-color);padding:30px 20px;">Gagal memuat data: ${result.message || 'Terjadi kesalahan'}</td></tr>`;
@@ -181,13 +217,21 @@ async function loadPegawai() {
     }
   } catch (err) {
     console.error('[loadPegawai]', err);
-    if (tbody) {
+    if (tbody && (!localStaff || localStaff.length === 0)) {
       tbody.innerHTML =
         `<tr><td colspan="5" style="text-align:center;color:var(--danger-color);padding:30px 20px;">Gagal memuat data pegawai. Periksa koneksi.</td></tr>`;
     }
   }
-  if (pagination) pagination.style.visibility = "visible";
-  if (extLoader) extLoader.classList.add("hidden");
+}
+
+function populatePegawaiSchoolFilter() {
+  const filterSekolahEl = document.getElementById("filter-pegawai-sekolah");
+  if (filterSekolahEl && Array.isArray(allPegawaiData)) {
+    const uniqueSchools = [...new Set(allPegawaiData.map(item => item.sekolah_nama).filter(Boolean))];
+    let optionsHtml = '<option value="">-- Semua Sekolah --</option>';
+    uniqueSchools.forEach(sch => optionsHtml += `<option value="${sch}">${sch}</option>`);
+    filterSekolahEl.innerHTML = optionsHtml;
+  }
 }
 
 function filterPegawaiTable() {
@@ -352,7 +396,11 @@ async function deleteSchool(id) {
   if (res.status === 'success') {
     Swal.close();
     Swal.fire({ icon: 'success', title: 'Dihapus!', text: 'Sekolah dan semua pegawainya telah dihapus.', timer: 2000, showConfirmButton: false });
-    loadSekolah();
+    // Hapus seketika dari memori & cache lokal (0 ms)
+    cachedSchools = cachedSchools.filter(s => s.id !== id);
+    try { localStorage.setItem('mktas_schools', JSON.stringify(cachedSchools)); } catch (e) {}
+    filterSekolah();
+    loadSekolah(true);
   } else {
     Swal.close();
     Swal.fire('Gagal', res.message || 'Terjadi kesalahan', 'error');
@@ -652,8 +700,11 @@ function openEditStaff(id) {
 // ============================================================
 // Helper: loadPegawaiSekolahInline — refresh inline list setelah edit
 // ============================================================
-async function loadPegawaiSekolahInline(schoolId) {
-  if (!schoolId) { loadPegawai(); return; }
+async function loadPegawaiSekolahInline(schoolId, forceRefresh = false) {
+  if (typeof window.loadPegawaiSekolahInline === 'function' && window.loadPegawaiSekolahInline !== loadPegawaiSekolahInline) {
+    return window.loadPegawaiSekolahInline(schoolId, forceRefresh);
+  }
+  if (!schoolId) { loadPegawai(forceRefresh); return; }
   try {
     const result = await fetchAPI("getStaff", { school_id: schoolId });
     if (result.status === "success") {
