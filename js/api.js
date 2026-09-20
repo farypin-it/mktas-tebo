@@ -1,6 +1,6 @@
 // api.js - Smart Wrapper for Hybrid Environment
 
-const DEFAULT_ONLINE_API_URL = "https://script.google.com/macros/s/AKfycbx8xp8_FEGJjTv4DA4btYnhR4ChbR_mHuK8Haem2V4RuRz6z6uVS38Oa0doNI0RkHGI/exec"; // Ganti dengan URL deployment Web App Apps Script Anda
+const DEFAULT_ONLINE_API_URL = "https://script.google.com/macros/s/AKfycbxuYyz2h6IbgNU82bXFDLZIt_TffjIyBkeQxDlLTfsXge72UzN2qqFl1X_Xv3kiGVO7/exec"; // Ganti dengan URL deployment Web App Apps Script Anda
 
 function safeReadJsonStorage(key, fallback = {}) {
   try {
@@ -55,7 +55,7 @@ async function fetchAPI(action, data = {}, showLoading = null) {
   // Determine if we should show loading
   const isModifying = ['add', 'update', 'edit', 'delete', 'save', 'import', 'change'].some(p => action.startsWith(p));
   const shouldLoad = showLoading !== null ? showLoading : isModifying;
-  
+
   if (shouldLoad && typeof Swal !== 'undefined') {
     Swal.fire({
       title: 'Memproses...',
@@ -108,7 +108,7 @@ async function fetchAPI(action, data = {}, showLoading = null) {
 
     const apiUrl = getOnlineApiUrl();
     const sep = apiUrl.includes('?') ? '&' : '?';
-    const targetUrl = `${apiUrl}${sep}action=${encodeURIComponent(action)}`;
+    const targetUrl = `${apiUrl}${sep}action=${encodeURIComponent(action)}&_t=${Date.now()}`;
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 seconds timeout
     let response;
@@ -116,6 +116,7 @@ async function fetchAPI(action, data = {}, showLoading = null) {
       response = await fetch(targetUrl, {
         method: "POST",
         body: params,
+        cache: "no-store",
         signal: controller.signal
       });
     } finally {
