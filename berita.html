@@ -106,6 +106,28 @@
     .social-links a:hover {
       color: var(--primary-color);
     }
+
+    /* Tampilan Khusus Laptop / Desktop: 2 Berita per Baris (50% 50%) */
+    @media (min-width: 769px) {
+      #all-news-container.news-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 20px !important;
+      }
+      .news-card {
+        height: 135px !important;
+      }
+      .news-img {
+        width: 160px !important;
+      }
+      .news-content {
+        padding: 14px 16px !important;
+      }
+      .news-content h4 {
+        font-size: 1.05rem !important;
+        margin-bottom: 6px !important;
+      }
+    }
   </style>
 </head>
 
