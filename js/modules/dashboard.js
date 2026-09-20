@@ -285,6 +285,71 @@ function initDashboard() {
 
   // Load Dashboard Stats
   loadDashboardData();
+
+  // Auto-sync data saat tab kembali aktif/fokus atau secara berkala
+  setupDashboardAutoSync();
+}
+
+let _lastAutoSyncCheck = 0;
+async function checkAndSyncActiveView() {
+  if (!currentUser) return;
+  const now = Date.now();
+  if (now - _lastAutoSyncCheck < 4000) return; // Debounce 4 detik
+  _lastAutoSyncCheck = now;
+
+  try {
+    const vRes = await fetchAPI('getDataVersion', {});
+    const serverVer = (vRes && vRes.status === 'success' && vRes.version) ? String(vRes.version) : '';
+    if (!serverVer) return;
+
+    const activeSection = document.querySelector('.section-content.active');
+    if (!activeSection) return;
+    const secId = activeSection.id;
+
+    if (secId === 'section-sekolah-pegawai' && typeof currentPegawaiSchoolId !== 'undefined' && currentPegawaiSchoolId) {
+      const verKey = `mktas_ver_staff_${currentPegawaiSchoolId}`;
+      if (localStorage.getItem(verKey) !== serverVer && typeof loadPegawaiSekolahInline === 'function') {
+        loadPegawaiSekolahInline(currentPegawaiSchoolId, true);
+      }
+    } else if (secId === 'section-sekolah') {
+      const isMasterPegawai = document.getElementById('master-tab-pegawai')?.style.display === 'block';
+      if (isMasterPegawai) {
+        const verKey = `mktas_ver_staff_${(currentUser && currentUser.role === "Sekolah" && currentUser.school_id) ? currentUser.school_id : 'all'}`;
+        if (localStorage.getItem(verKey) !== serverVer && typeof loadPegawai === 'function') {
+          loadPegawai(true);
+        }
+      } else {
+        if (localStorage.getItem('mktas_ver_schools') !== serverVer && typeof loadSekolah === 'function') {
+          loadSekolah(true);
+        }
+      }
+    } else if (secId === 'section-jadwal') {
+      if (localStorage.getItem('mktas_ver_schedules') !== serverVer && typeof loadJadwal === 'function') {
+        loadJadwal(true);
+      }
+    } else if (secId === 'section-laporan') {
+      if (localStorage.getItem('mktas_ver_schedules') !== serverVer && typeof loadLaporan === 'function') {
+        loadLaporan(true);
+      }
+    }
+  } catch (e) {}
+}
+
+function setupDashboardAutoSync() {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      checkAndSyncActiveView();
+    }
+  });
+  window.addEventListener('focus', () => {
+    checkAndSyncActiveView();
+  });
+  // Periksa setiap 30 detik di latar belakang
+  setInterval(() => {
+    if (document.visibilityState === 'visible') {
+      checkAndSyncActiveView();
+    }
+  }, 30000);
 }
 
 function setupModals() {
