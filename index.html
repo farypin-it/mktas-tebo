@@ -151,7 +151,7 @@
       gap: 10px;
       position: relative;
       z-index: 10;
-      margin-bottom: 35px;
+      margin-bottom: 14px;
     }
 
     .substat-card {
@@ -243,6 +243,82 @@
     }
     .substat-non-asn .substat-number { color: #0f766e; }
     .substat-non-asn .substat-label { color: #0d9488; }
+
+    /* Sekilas Info (Running Text) */
+    .running-info-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(99, 102, 241, 0.22);
+      border-radius: 30px;
+      padding: 6px 16px 6px 8px;
+      margin-bottom: 35px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+      position: relative;
+      z-index: 10;
+    }
+
+    .running-info-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--gradient-primary, linear-gradient(135deg, var(--primary-color, #6366f1), var(--secondary-color, #ec4899)));
+      color: #ffffff;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
+    }
+
+    .running-info-badge i {
+      font-size: 0.85rem;
+      animation: toa-wobble 2.5s ease-in-out infinite;
+    }
+
+    @keyframes toa-wobble {
+      0%, 100% { transform: rotate(0deg); }
+      15% { transform: rotate(-12deg); }
+      30% { transform: rotate(12deg); }
+      45% { transform: rotate(-8deg); }
+      60% { transform: rotate(8deg); }
+      75% { transform: rotate(0deg); }
+    }
+
+    .running-info-marquee-box {
+      flex: 1;
+      overflow: hidden;
+      white-space: nowrap;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .running-info-text {
+      display: inline-block;
+      white-space: nowrap;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: #334155;
+      padding-left: 100%;
+      animation: ticker-scroll 32s linear infinite;
+    }
+
+    .running-info-wrapper:hover .running-info-text {
+      animation-play-state: paused;
+    }
+
+    @keyframes ticker-scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-100%); }
+    }
 
     /* Grid Section */
     .content-grid {
@@ -441,7 +517,7 @@
         grid-template-columns: repeat(6, 1fr) !important;
         gap: 4px !important;
         margin-top: 0 !important;
-        margin-bottom: 22px !important;
+        margin-bottom: 10px !important;
       }
 
       .substat-card {
@@ -469,6 +545,29 @@
         line-height: 1 !important;
         text-align: center !important;
         white-space: nowrap !important;
+      }
+
+      /* Running Info Khusus HP */
+      .running-info-wrapper {
+        margin-bottom: 20px !important;
+        padding: 4px 10px 4px 6px !important;
+        border-radius: 20px !important;
+        gap: 8px !important;
+      }
+
+      .running-info-badge {
+        padding: 3px 9px !important;
+        font-size: 0.68rem !important;
+        gap: 4px !important;
+      }
+
+      .running-info-badge i {
+        font-size: 0.72rem !important;
+      }
+
+      .running-info-text {
+        font-size: 0.75rem !important;
+        animation-duration: 25s !important;
       }
     }
 
@@ -639,6 +738,19 @@
       <div class="glass-panel substat-card substat-non-asn">
         <div class="substat-number" id="stat-non-asn">0</div>
         <div class="substat-label">Non ASN</div>
+      </div>
+    </div>
+
+    <!-- Sekilas Info (Running Text) -->
+    <div class="running-info-wrapper" id="running-info-section">
+      <div class="running-info-badge">
+        <i class="fa-solid fa-bullhorn"></i>
+        <span>Info</span>
+      </div>
+      <div class="running-info-marquee-box">
+        <div class="running-info-text" id="running-info-content">
+          Selamat Datang di Portal Resmi Musyawarah Kerja Tenaga Administrasi Sekolah (MKTAS). Pantau agenda kerja, informasi kepegawaian, dan pengumuman terbaru secara real-time di sini!
+        </div>
       </div>
     </div>
 
@@ -1112,6 +1224,18 @@
       const cachedBoard = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_board', []) : JSON.parse(localStorage.getItem('mktas_board') || '[]');
       const cachedSocials = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_socials', []) : JSON.parse(localStorage.getItem('mktas_socials') || '[]');
 
+      function renderRunningInfo(settings) {
+        const infoEl = document.getElementById('running-info-content');
+        if (!infoEl) return;
+        const text = (settings && (settings.sekilas_info || settings.profil_sekilas_info || settings.profil_data)) || '';
+        if (text && text.trim()) {
+          infoEl.innerText = text.trim();
+        }
+      }
+
+      const cachedSettings = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_settings', {}) : JSON.parse(localStorage.getItem('mktas_settings') || '{}');
+      renderRunningInfo(cachedSettings);
+
       if (Array.isArray(cachedSliders) && cachedSliders.length > 0) renderHeroSliders(cachedSliders);
       if (cachedStats) {
         if (cachedStats.lk === undefined) {
@@ -1182,6 +1306,7 @@
           localStorage.setItem('mktas_settings', JSON.stringify(curSet));
           if (typeof applyWarnaSettings === 'function') applyWarnaSettings(curSet);
           if (typeof window.applySettingsToFooter === 'function') window.applySettingsToFooter(curSet);
+          renderRunningInfo(curSet);
         }
       }
 
