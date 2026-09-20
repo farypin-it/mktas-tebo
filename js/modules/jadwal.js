@@ -63,7 +63,8 @@ async function loadJadwal(forceRefresh = false) {
 
   // 1. Stale-While-Revalidate: Tampilkan tahun jadwal seketika dari cache (0 ms)!
   const localSchedules = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_schedules', []) : JSON.parse(localStorage.getItem('mktas_schedules') || '[]');
-  const cachedVer = localStorage.getItem('mktas_data_version') || '';
+  const verKey = 'mktas_ver_schedules';
+  const cachedVer = localStorage.getItem(verKey) || '';
 
   if (Array.isArray(localSchedules) && localSchedules.length > 0 && !forceRefresh) {
     allSchedules = localSchedules;
@@ -87,7 +88,7 @@ async function loadJadwal(forceRefresh = false) {
 
     if (result.status === "success" && Array.isArray(result.data)) {
       allSchedules = result.data;
-      if (serverVer) localStorage.setItem('mktas_data_version', serverVer);
+      if (serverVer) localStorage.setItem(verKey, serverVer);
       try { localStorage.setItem('mktas_schedules', JSON.stringify(allSchedules)); } catch(e) {}
       renderYearGrid(allSchedules);
       // Jika sedang melihat tabel tahun tertentu, perbarui tabelnya juga
@@ -568,7 +569,8 @@ async function loadLaporan(forceRefresh = false) {
   const localSchedules = (typeof safeReadJsonStorage === 'function') 
     ? safeReadJsonStorage('mktas_schedules', []) 
     : JSON.parse(localStorage.getItem('mktas_schedules') || '[]');
-  const cachedVer = localStorage.getItem('mktas_data_version') || '';
+  const verKey = 'mktas_ver_schedules';
+  const cachedVer = localStorage.getItem(verKey) || '';
   const hasCache = Array.isArray(localSchedules) && localSchedules.length > 0;
 
   if (hasCache && !forceRefresh) {
@@ -595,7 +597,7 @@ async function loadLaporan(forceRefresh = false) {
     if (result.status === "success" && Array.isArray(result.data)) {
       allLaporanData = result.data;
       allSchedules = result.data;
-      if (serverVer) localStorage.setItem('mktas_data_version', serverVer);
+      if (serverVer) localStorage.setItem(verKey, serverVer);
       try { localStorage.setItem('mktas_schedules', JSON.stringify(result.data)); } catch (e) {}
 
       populateFilterLaporanTahun(allLaporanData);
