@@ -329,7 +329,7 @@ function setupModals() {
       if (res.status === "success") {
         window.closeModal("modal-sekolah");
         formSekolah.reset();
-        loadSekolah();
+        loadSekolah(true);
         Swal.fire({ icon: 'success', text: res.message });
       } else {
         Swal.fire({ icon: 'error', text: res.message });
@@ -361,7 +361,7 @@ function setupModals() {
       if (res.status === "success") {
         window.closeModal("modal-edit-sekolah");
         formEditSekolah.reset();
-        loadSekolah();
+        loadSekolah(true);
         Swal.fire({ icon: 'success', text: res.message });
       } else {
         Swal.fire({ icon: 'error', text: res.message });
@@ -499,7 +499,7 @@ function setupModals() {
           if (res.status === "success") {
             document.getElementById("modal-import-sekolah").classList.remove("active");
             document.getElementById("form-import-sekolah").reset();
-            loadSekolah();
+            loadSekolah(true);
             Swal.fire({ icon: 'success', text: res.message });
           } else {
             Swal.fire({ icon: 'error', text: res.message });
@@ -587,7 +587,10 @@ function setupModals() {
         Swal.close();
         window.closeModal("modal-pegawai");
         formPegawai.reset();
-        loadPegawai();
+        if (typeof currentPegawaiSchoolId !== 'undefined' && currentPegawaiSchoolId) {
+          loadPegawaiSekolahInline(currentPegawaiSchoolId, true);
+        }
+        loadPegawai(true);
         Swal.fire({ icon: 'success', text: res.message });
       } else {
         Swal.close();
@@ -656,7 +659,10 @@ function setupModals() {
         Swal.close();
         window.closeModal("modal-jadwal");
         formJadwal.reset();
-        loadJadwalByTahun(currentJadwalTahun);
+        await loadJadwal(true);
+        if (currentJadwalTahun) {
+          filterJadwal();
+        }
         Swal.fire({ icon: 'success', text: res.message });
       } else {
         Swal.close();
@@ -709,11 +715,10 @@ function setupModals() {
         document.getElementById("modal-edit-pegawai").classList.remove("active");
         Swal.fire({ icon: 'success', text: "Data pegawai berhasil diperbarui" });
         // Refresh halaman inline jika sedang terbuka, atau global loadPegawai
-        if (currentPegawaiSchoolId) {
-          loadPegawaiSekolahInline(currentPegawaiSchoolId);
-        } else {
-          loadPegawai();
+        if (typeof currentPegawaiSchoolId !== 'undefined' && currentPegawaiSchoolId) {
+          loadPegawaiSekolahInline(currentPegawaiSchoolId, true);
         }
+        loadPegawai(true);
       } else {
         Swal.close();
         Swal.fire({ icon: 'error', text: res.message });
@@ -749,7 +754,10 @@ function setupModals() {
       if (res.status === "success") {
         Swal.close();
         document.getElementById("modal-edit-jadwal").classList.remove("active");
-        loadJadwalByTahun(currentJadwalTahun);
+        await loadJadwal(true);
+        if (currentJadwalTahun) {
+          filterJadwal();
+        }
         Swal.fire({ icon: 'success', text: "Data jadwal berhasil diperbarui" });
       } else {
         Swal.close();
