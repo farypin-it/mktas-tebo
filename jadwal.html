@@ -208,70 +208,65 @@
   <script src="js/api.js"></script>
   <script src="js/footer.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', async () => {
+    document.addEventListener('DOMContentLoaded', () => {
       let localSet = JSON.parse(localStorage.getItem('mktas_settings') || '{}');
-      try {
-        if (typeof fetchAPI !== 'undefined') {
-          const res = await fetchAPI('getSettings', {});
-          if (res && res.status === 'success' && res.data) {
-            localSet = typeof mergeSettings === 'function' ? mergeSettings(localSet, res.data) : Object.assign(localSet, res.data);
-          }
-        }
-      } catch (e) { }
 
       if (typeof applyWarnaSettings === 'function') {
         applyWarnaSettings(localSet);
       }
 
-      // Populate Header & Footer Branding
-      if (localSet.wilayah) {
-        const hw = document.getElementById('header-wilayah');
-        if (hw) hw.textContent = localSet.wilayah;
-        const fr = document.getElementById('footer-region');
-        if (fr) fr.textContent = localSet.wilayah;
-      }
-      if (localSet.nama_forum) {
-        const fn = document.getElementById('footer-forum-name');
-        if (fn) fn.textContent = localSet.nama_forum;
-      }
-      if (localSet.singkatan_forum) {
-        const fc = document.getElementById('footer-copyright-name');
-        if (fc) fc.textContent = localSet.singkatan_forum;
-      }
-      if (localSet.alamat) {
-        const fa = document.getElementById('footer-address');
-        if (fa) fa.textContent = localSet.alamat;
-      }
-      if (localSet.telp) {
-        const fp = document.getElementById('footer-phone');
-        if (fp) fp.textContent = localSet.telp;
-        let cleanTelp = String(localSet.telp).replace(/[^0-9]/g, '');
-        if (cleanTelp.startsWith('0')) cleanTelp = '62' + cleanTelp.substring(1);
-        const fpl = document.getElementById('footer-phone-link');
-        if (fpl) fpl.href = 'https://wa.me/' + cleanTelp;
-      }
-      if (localSet.email) {
-        const fe = document.getElementById('footer-email');
-        if (fe) fe.textContent = localSet.email;
-        const fel = document.getElementById('footer-email-link');
-        if (fel) fel.href = 'mailto:' + localSet.email;
-      }
-      if (localSet.website) {
-        const fw = document.getElementById('footer-website');
-        if (fw) {
-          const website = String(localSet.website);
-          fw.textContent = website.replace(/^https?:\/\//, '');
-          fw.href = website.startsWith('http') ? website : 'https://' + website;
+      function applyBrandingUI(s) {
+        if (s.wilayah) {
+          const hw = document.getElementById('header-wilayah');
+          if (hw) hw.textContent = s.wilayah;
+          const fr = document.getElementById('footer-region');
+          if (fr) fr.textContent = s.wilayah;
+        }
+        if (s.nama_forum) {
+          const fn = document.getElementById('footer-forum-name');
+          if (fn) fn.textContent = s.nama_forum;
+        }
+        if (s.singkatan_forum) {
+          const fc = document.getElementById('footer-copyright-name');
+          if (fc) fc.textContent = s.singkatan_forum;
+        }
+        if (s.alamat) {
+          const fa = document.getElementById('footer-address');
+          if (fa) fa.textContent = s.alamat;
+        }
+        if (s.telp) {
+          const fp = document.getElementById('footer-phone');
+          if (fp) fp.textContent = s.telp;
+          let cleanTelp = String(s.telp).replace(/[^0-9]/g, '');
+          if (cleanTelp.startsWith('0')) cleanTelp = '62' + cleanTelp.substring(1);
+          const fpl = document.getElementById('footer-phone-link');
+          if (fpl) fpl.href = 'https://wa.me/' + cleanTelp;
+        }
+        if (s.email) {
+          const fe = document.getElementById('footer-email');
+          if (fe) fe.textContent = s.email;
+          const fel = document.getElementById('footer-email-link');
+          if (fel) fel.href = 'mailto:' + s.email;
+        }
+        if (s.website) {
+          const fw = document.getElementById('footer-website');
+          if (fw) {
+            const website = String(s.website);
+            fw.textContent = website.replace(/^https?:\/\//, '');
+            fw.href = website.startsWith('http') ? website : 'https://' + website;
+          }
+        }
+        if (s.logo_forum) {
+          const fl = document.getElementById('footer-logo');
+          if (fl) { fl.src = s.logo_forum; fl.style.display = 'block'; }
+          const hl = document.getElementById('header-logo-img');
+          if (hl) { hl.src = s.logo_forum; hl.style.display = 'block'; }
+          const hs = document.getElementById('header-logo-svg');
+          if (hs) hs.style.display = 'none';
         }
       }
-      if (localSet.logo_forum) {
-        const fl = document.getElementById('footer-logo');
-        if (fl) { fl.src = localSet.logo_forum; fl.style.display = 'block'; }
-        const hl = document.getElementById('header-logo-img');
-        if (hl) { hl.src = localSet.logo_forum; hl.style.display = 'block'; }
-        const hs = document.getElementById('header-logo-svg');
-        if (hs) hs.style.display = 'none';
-      }
+      applyBrandingUI(localSet);
+
 
       // Load Schedules
       const tbody = document.querySelector('#table-jadwal tbody');
@@ -429,9 +424,18 @@
         if (serverVer && serverVer === cachedVer && cachedSchedules && cachedSchedules.length > 0) {
           return; // Versi data identik, 0 spreadsheet calls!
         }
-        return fetchAPI('getSchedules', {}).then(jdwRes => {
+        return Promise.all([
+          fetchAPI('getSchedules', {}),
+          fetchAPI('getSettings', {})
+        ]).then(([jdwRes, setRes]) => {
+          if (serverVer) localStorage.setItem('mktas_data_version', serverVer);
+          if (setRes && setRes.status === 'success' && setRes.data) {
+            localSet = typeof mergeSettings === 'function' ? mergeSettings(localSet, setRes.data) : Object.assign(localSet, setRes.data);
+            try { localStorage.setItem('mktas_settings', JSON.stringify(localSet)); } catch(e) {}
+            applyBrandingUI(localSet);
+            if (typeof applyWarnaSettings === 'function') applyWarnaSettings(localSet);
+          }
           if (jdwRes && jdwRes.status === 'success' && jdwRes.data) {
-            if (serverVer) localStorage.setItem('mktas_data_version', serverVer);
             localStorage.setItem('mktas_schedules', JSON.stringify(jdwRes.data));
             allPastSchedules = jdwRes.data.filter(s => s.keterangan === 'Terlaksana').sort((a, b) => {
               const dateA = new Date(a.tanggal || 0).getTime();
