@@ -1,277 +1,421 @@
 <!doctype html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Detail Berita - SIM MKTAS</title>
-    <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-      .public-footer { background: #1f2937; color: white; padding: 40px 0 20px; margin-top: auto; }
-      .footer-grid { display: grid; grid-template-columns: 1.6fr 1.1fr 1fr; gap: 24px; margin-bottom: 25px; align-items: start; }
-      .footer-col:nth-child(3) { text-align: right; }
-      .footer-col:nth-child(3) .social-links { justify-content: flex-end; }
-      .footer-col h4 { color: white; margin-bottom: 15px; }
-      .social-links a { color: white; font-size: 1.5rem; margin-right: 15px; transition: var(--transition); }
-      .social-links a:hover { color: var(--primary-color); }
-      
-      .article-container { max-width: 800px; margin: 0 auto; background: #fff; padding: 30px; border-radius: var(--card-radius); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-      .article-img { width: 100%; max-height: 400px; object-fit: cover; border-radius: 8px; margin-bottom: 20px; }
-      .article-title { font-size: 2rem; margin-bottom: 10px; color: #1f2937; line-height: 1.3; }
-      .article-meta { color: #6b7280; font-size: 0.9rem; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #e5e7eb; padding-bottom: 15px; }
-      .article-content { font-size: 1.05rem; line-height: 1.7; color: #374151; margin-bottom: 40px; white-space: pre-wrap; }
-      
-      .share-container { border-top: 1px solid #e5e7eb; padding-top: 20px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
-      .share-title { font-weight: 600; color: #4b5563; }
-      .share-btn { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; color: white; text-decoration: none; transition: transform 0.2s; }
-      .share-btn:hover { transform: scale(1.1); }
-      .share-wa { background: #25D366; }
-      .share-fb { background: #1877F2; }
-      .share-tw { background: #1DA1F2; }
-      .share-tg { background: #0088cc; }
-      .share-link { background: #6b7280; cursor: pointer; border: none; }
 
-      @media (max-width: 768px) {
-        .article-container {
-          padding: 18px 14px !important;
-          border-radius: 12px !important;
-        }
-        .article-title {
-          font-size: 1.35rem !important;
-        }
-        .article-content {
-          font-size: 0.95rem !important;
-          line-height: 1.6 !important;
-        }
-        .footer-grid {
-          grid-template-columns: 1fr !important;
-          gap: 25px !important;
-        }
-        .footer-col {
-          text-align: left !important;
-        }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Detail Berita - Portal MKTAS</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .public-footer {
+      background: #1f2937;
+      color: white;
+      padding: 40px 0 20px;
+      margin-top: auto;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1.6fr 1.1fr 1fr;
+      gap: 24px;
+      margin-bottom: 25px;
+      align-items: start;
+    }
+
+    .footer-col:nth-child(3) {
+      text-align: right;
+    }
+
+    .footer-col:nth-child(3) .social-links {
+      justify-content: flex-end;
+    }
+
+    .footer-col h4 {
+      color: white;
+      margin-bottom: 15px;
+    }
+
+    .social-links a {
+      color: white;
+      font-size: 1.5rem;
+      margin-right: 15px;
+      transition: var(--transition);
+    }
+
+    .social-links a:hover {
+      color: var(--primary-color);
+    }
+
+    .article-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: var(--card-radius);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .article-img {
+      width: 100%;
+      max-height: 400px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .article-title {
+      font-size: 2rem;
+      margin-bottom: 10px;
+      color: #1f2937;
+      line-height: 1.3;
+    }
+
+    .article-meta {
+      color: #6b7280;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 15px;
+    }
+
+    .article-content {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: #374151;
+      margin-bottom: 40px;
+      white-space: pre-wrap;
+    }
+
+    .share-container {
+      border-top: 1px solid #e5e7eb;
+      padding-top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .share-title {
+      font-weight: 600;
+      color: #4b5563;
+    }
+
+    .share-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      color: white;
+      text-decoration: none;
+      transition: transform 0.2s;
+    }
+
+    .share-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .share-wa {
+      background: #25D366;
+    }
+
+    .share-fb {
+      background: #1877F2;
+    }
+
+    .share-tw {
+      background: #1DA1F2;
+    }
+
+    .share-tg {
+      background: #0088cc;
+    }
+
+    .share-link {
+      background: #6b7280;
+      cursor: pointer;
+      border: none;
+    }
+
+    @media (max-width: 768px) {
+      .article-container {
+        padding: 18px 14px !important;
+        border-radius: 12px !important;
       }
-    </style>
-  </head>
-  <body class="has-bottom-nav" style="display: flex; flex-direction: column; min-height: 100vh; background: #f9fafb;">
-    <header class="header" style="background: white; border-bottom: 1px solid #e5e7eb;">
-      <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
-        <a href="index.html" class="brand" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
-          <svg id="header-logo-svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
-          </svg>
-          <img id="header-logo-img" src="" alt="Logo" style="width: 32px; height: 32px; object-fit: contain; display: none;" />
-          <div style="display: flex; flex-direction: column; justify-content: center; text-align: left; line-height: 1.15;">
-            <div style="font-size: 1.3rem; font-weight: 800; letter-spacing: -0.5px;">
-              <span style="color: #f97316;">Portal</span> <span style="color: #2563eb;">MKTAS</span>
-            </div>
-            <small id="header-wilayah" style="font-size: 0.75rem; font-weight: 600; color: #64748b; display: block;"></small>
+
+      .article-title {
+        font-size: 1.35rem !important;
+      }
+
+      .article-content {
+        font-size: 0.95rem !important;
+        line-height: 1.6 !important;
+      }
+
+      .footer-grid {
+        grid-template-columns: 1fr !important;
+        gap: 25px !important;
+      }
+
+      .footer-col {
+        text-align: left !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="has-bottom-nav" style="display: flex; flex-direction: column; min-height: 100vh; background: #f9fafb;">
+  <header class="header" style="background: white; border-bottom: 1px solid #e5e7eb;">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+      <a href="index.html" class="brand" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+        <svg id="header-logo-svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2563eb"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+        </svg>
+        <img id="header-logo-img" src="" alt="Logo"
+          style="width: 32px; height: 32px; object-fit: contain; display: none;" />
+        <div
+          style="display: flex; flex-direction: column; justify-content: center; text-align: left; line-height: 1.15;">
+          <div style="font-size: 1.3rem; font-weight: 800; letter-spacing: -0.5px;">
+            <span style="color: #f97316;">Portal</span> <span style="color: #2563eb;">MKTAS</span>
           </div>
-        </a>
-        <nav class="nav-links">
-          <a href="index.html">Beranda</a>
-          <a href="berita.html" class="active">Berita</a>
-          <a href="index.html#jadwal">Jadwal</a>
-          <a href="profil.html">Profil</a>
-          <a href="galeri.html">Galeri</a>
-          <a href="referensi.html">File Referensi</a>
-          <a href="index.html#kontak">Kontak</a>
-          <a href="login.html" class="btn btn-primary">Masuk Portal</a>
-        </nav>
-        <!-- Tombol Masuk Portal Khusus Mobile Kanan Atas -->
-        <a href="login.html" class="btn-portal-mobile" title="Masuk Portal">
-          <i class="fa-solid fa-arrow-right-to-bracket"></i>
-          <span>Masuk</span>
-        </a>
-      </div>
-    </header>
+          <small id="header-wilayah"
+            style="font-size: 0.75rem; font-weight: 600; color: #64748b; display: block;"></small>
+        </div>
+      </a>
+      <nav class="nav-links">
+        <a href="index.html">Beranda</a>
+        <a href="berita.html" class="active">Berita</a>
+        <a href="index.html#jadwal">Jadwal</a>
+        <a href="profil.html">Profil</a>
+        <a href="galeri.html">Galeri</a>
+        <a href="referensi.html">File Referensi</a>
+        <a href="index.html#kontak">Kontak</a>
+        <a href="login.html" class="btn btn-primary">Masuk Portal</a>
+      </nav>
+      <!-- Tombol Masuk Portal Khusus Mobile Kanan Atas -->
+      <a href="login.html" class="btn-portal-mobile" title="Masuk Portal">
+        <i class="fa-solid fa-arrow-right-to-bracket"></i>
+        <span>Masuk</span>
+      </a>
+    </div>
+  </header>
 
-    <main class="container" style="flex: 1; padding-top: 25px; padding-bottom: 50px;">
-      <div style="margin-bottom: 20px;">
-        <a href="berita.html" style="text-decoration: none; color: var(--primary-color); display: inline-flex; align-items: center; gap: 5px; font-weight: 600; font-size: 0.9rem;">
-          <i class="fa-solid fa-arrow-left"></i> Kembali ke Berita
-        </a>
-      </div>
-      
-      <div class="article-container" id="article-content">
-        <div class="loader" style="margin: 50px auto;"></div>
-      </div>
-    </main>
+  <main class="container" style="flex: 1; padding-top: 25px; padding-bottom: 50px;">
+    <div style="margin-bottom: 20px;">
+      <a href="berita.html"
+        style="text-decoration: none; color: var(--primary-color); display: inline-flex; align-items: center; gap: 5px; font-weight: 600; font-size: 0.9rem;">
+        <i class="fa-solid fa-arrow-left"></i> Kembali ke Berita
+      </a>
+    </div>
 
-    <!-- FOOTER TERPUSAT (js/footer.js) -->
-    <footer class="public-footer" id="kontak"></footer>
+    <div class="article-container" id="article-content">
+      <div class="loader" style="margin: 50px auto;"></div>
+    </div>
+  </main>
 
-    <script src="js/api.js"></script>
-    <script src="js/footer.js"></script>
-    <script>
-      function copyLink() {
-        navigator.clipboard.writeText(window.location.href).then(() => {
-          alert('Link berhasil disalin!');
-        });
+  <!-- FOOTER TERPUSAT (js/footer.js) -->
+  <footer class="public-footer" id="kontak"></footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/footer.js"></script>
+  <script>
+    function copyLink() {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        alert('Link berhasil disalin!');
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      let localSet = JSON.parse(localStorage.getItem('mktas_settings') || '{}');
+      try {
+        if (typeof fetchAPI !== 'undefined') {
+          const res = await fetchAPI('getSettings', {});
+          if (res && res.status === 'success' && res.data) {
+            localSet = typeof mergeSettings === 'function' ? mergeSettings(localSet, res.data) : Object.assign(localSet, res.data);
+          }
+        }
+      } catch (e) { }
+
+      if (typeof applyWarnaSettings === 'function') {
+        applyWarnaSettings(localSet);
       }
 
-      document.addEventListener('DOMContentLoaded', async () => {
-        let localSet = JSON.parse(localStorage.getItem('mktas_settings') || '{}');
-        try {
-          if (typeof fetchAPI !== 'undefined') {
-            const res = await fetchAPI('getSettings', {});
-            if (res && res.status === 'success' && res.data) {
-              localSet = typeof mergeSettings === 'function' ? mergeSettings(localSet, res.data) : Object.assign(localSet, res.data);
-            }
-          }
-        } catch (e) {}
-
-        if (typeof applyWarnaSettings === 'function') {
-          applyWarnaSettings(localSet);
+      // Populate Header & Footer Branding
+      if (localSet.wilayah) {
+        const hw = document.getElementById('header-wilayah');
+        if (hw) hw.textContent = localSet.wilayah;
+        const fr = document.getElementById('footer-region');
+        if (fr) fr.textContent = localSet.wilayah;
+      }
+      if (localSet.nama_forum) {
+        const fn = document.getElementById('footer-forum-name');
+        if (fn) fn.textContent = localSet.nama_forum;
+      }
+      if (localSet.singkatan_forum) {
+        const fc = document.getElementById('footer-copyright-name');
+        if (fc) fc.textContent = localSet.singkatan_forum;
+      }
+      if (localSet.alamat) {
+        const fa = document.getElementById('footer-address');
+        if (fa) fa.textContent = localSet.alamat;
+      }
+      if (localSet.telp) {
+        const fp = document.getElementById('footer-phone');
+        if (fp) fp.textContent = localSet.telp;
+        let cleanTelp = String(localSet.telp).replace(/[^0-9]/g, '');
+        if (cleanTelp.startsWith('0')) cleanTelp = '62' + cleanTelp.substring(1);
+        const fpl = document.getElementById('footer-phone-link');
+        if (fpl) fpl.href = 'https://wa.me/' + cleanTelp;
+      }
+      if (localSet.email) {
+        const fe = document.getElementById('footer-email');
+        if (fe) fe.textContent = localSet.email;
+        const fel = document.getElementById('footer-email-link');
+        if (fel) fel.href = 'mailto:' + localSet.email;
+      }
+      if (localSet.website) {
+        const fw = document.getElementById('footer-website');
+        if (fw) {
+          fw.textContent = localSet.website.replace(/^https?:\/\//, '');
+          fw.href = localSet.website.startsWith('http') ? localSet.website : 'https://' + localSet.website;
         }
-
-        // Populate Header & Footer Branding
-        if (localSet.wilayah) {
-          const hw = document.getElementById('header-wilayah');
-          if (hw) hw.textContent = localSet.wilayah;
-          const fr = document.getElementById('footer-region');
-          if (fr) fr.textContent = localSet.wilayah;
-        }
-        if (localSet.nama_forum) {
-          const fn = document.getElementById('footer-forum-name');
-          if (fn) fn.textContent = localSet.nama_forum;
-        }
-        if (localSet.singkatan_forum) {
-          const fc = document.getElementById('footer-copyright-name');
-          if (fc) fc.textContent = localSet.singkatan_forum;
-        }
-        if (localSet.alamat) {
-          const fa = document.getElementById('footer-address');
-          if (fa) fa.textContent = localSet.alamat;
-        }
-        if (localSet.telp) {
-          const fp = document.getElementById('footer-phone');
-          if (fp) fp.textContent = localSet.telp;
-          let cleanTelp = String(localSet.telp).replace(/[^0-9]/g, '');
-          if (cleanTelp.startsWith('0')) cleanTelp = '62' + cleanTelp.substring(1);
-          const fpl = document.getElementById('footer-phone-link');
-          if (fpl) fpl.href = 'https://wa.me/' + cleanTelp;
-        }
-        if (localSet.email) {
-          const fe = document.getElementById('footer-email');
-          if (fe) fe.textContent = localSet.email;
-          const fel = document.getElementById('footer-email-link');
-          if (fel) fel.href = 'mailto:' + localSet.email;
-        }
-        if (localSet.website) {
-          const fw = document.getElementById('footer-website');
-          if (fw) {
-            fw.textContent = localSet.website.replace(/^https?:\/\//, '');
-            fw.href = localSet.website.startsWith('http') ? localSet.website : 'https://' + localSet.website;
-          }
-        }
-        if (localSet.logo_forum) {
-          const fl = document.getElementById('footer-logo');
-          if (fl) { fl.src = localSet.logo_forum; fl.style.display = 'block'; }
-          const hl = document.getElementById('header-logo-img');
-          if (hl) { hl.src = localSet.logo_forum; hl.style.display = 'block'; }
-          const hs = document.getElementById('header-logo-svg');
-          if (hs) hs.style.display = 'none';
-        }
-        // Load Socials (Footer)
-        const socRes = await fetchAPI('getSocials', {});
-        if (socRes.status === 'success' && socRes.data) {
-          document.getElementById('social-container').innerHTML = socRes.data.map(s => `
+      }
+      if (localSet.logo_forum) {
+        const fl = document.getElementById('footer-logo');
+        if (fl) { fl.src = localSet.logo_forum; fl.style.display = 'block'; }
+        const hl = document.getElementById('header-logo-img');
+        if (hl) { hl.src = localSet.logo_forum; hl.style.display = 'block'; }
+        const hs = document.getElementById('header-logo-svg');
+        if (hs) hs.style.display = 'none';
+      }
+      // Load Socials (Footer)
+      const socRes = await fetchAPI('getSocials', {});
+      if (socRes.status === 'success' && socRes.data) {
+        document.getElementById('social-container').innerHTML = socRes.data.map(s => `
             <a href="${s.url}" target="_blank" title="${s.platform}"><i class="${s.icon || 'fa-solid fa-link'}"></i></a>
           `).join('');
-        }
+      }
 
-        // Get Article ID from URL
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get('id');
-        const container = document.getElementById('article-content');
+      // Get Article ID from URL
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      const container = document.getElementById('article-content');
 
-        if (!id) {
-          container.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fa-solid fa-circle-exclamation" style="font-size:3rem;color:#f87171;margin-bottom:15px;"></i><h3>Berita Tidak Ditemukan</h3><p>URL tidak valid atau berita tidak tersedia.</p></div>';
-          return;
-        }
+      if (!id) {
+        container.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fa-solid fa-circle-exclamation" style="font-size:3rem;color:#f87171;margin-bottom:15px;"></i><h3>Berita Tidak Ditemukan</h3><p>URL tidak valid atau berita tidak tersedia.</p></div>';
+        return;
+      }
 
-        const newsRes = await fetchAPI('getNews', {});
-        if (newsRes.status === 'success' && newsRes.data) {
-          const article = newsRes.data.find(n => n.id == id && n.is_published);
-          
-          if (article) {
-            document.title = article.title + " - SIM MKTAS";
-            
-            const currentUrl = encodeURIComponent(window.location.href);
-            const shareTitle = encodeURIComponent(article.title);
-
-            container.innerHTML = `
-              <h1 class="article-title">${article.title}</h1>
-              <div class="article-meta">
-                <span><i class="fa-regular fa-calendar"></i> ${article.date}</span>
-                <span><i class="fa-solid fa-user-pen"></i> Admin MKTAS</span>
-              </div>
-              
-              ${article.image_url ? `<img src="${article.image_url}" class="article-img" alt="${article.title}">` : ''}
-              
-              <div class="article-content">${article.content}</div>
-              
-              <div class="share-container">
-                <span class="share-title">Bagikan Berita:</span>
-                <a href="https://api.whatsapp.com/send?text=${shareTitle}%20${currentUrl}" target="_blank" class="share-btn share-wa" title="Bagikan ke WhatsApp">
-                  <i class="fa-brands fa-whatsapp"></i>
-                </a>
-                <a href="https://www.facebook.com/sharer/sharer.php?u=${currentUrl}" target="_blank" class="share-btn share-fb" title="Bagikan ke Facebook">
-                  <i class="fa-brands fa-facebook-f"></i>
-                </a>
-                <a href="https://twitter.com/intent/tweet?url=${currentUrl}&text=${shareTitle}" target="_blank" class="share-btn share-tw" title="Bagikan ke Twitter/X">
-                  <i class="fa-brands fa-twitter"></i>
-                </a>
-                <a href="https://t.me/share/url?url=${currentUrl}&text=${shareTitle}" target="_blank" class="share-btn share-tg" title="Bagikan ke Telegram">
-                  <i class="fa-brands fa-telegram"></i>
-                </a>
-                <button onclick="copyLink()" class="share-btn share-link" title="Salin Link">
-                  <i class="fa-solid fa-link"></i>
-                </button>
-              </div>
-            `;
-          } else {
-            container.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fa-solid fa-circle-exclamation" style="font-size:3rem;color:#f87171;margin-bottom:15px;"></i><h3>Berita Tidak Ditemukan</h3><p>Berita mungkin telah dihapus atau tidak dipublikasikan.</p></div>';
+      // 1. Tampilkan Artikel Seketika dari Cache (0 detik)
+      let articleRendered = false;
+      try {
+        const cachedNews = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_news', []) : JSON.parse(localStorage.getItem('mktas_news') || '[]');
+        if (Array.isArray(cachedNews) && cachedNews.length > 0) {
+          const cachedArticle = cachedNews.find(n => (n.id == id || n.slug == id) && n.is_published);
+          if (cachedArticle) {
+            renderArticleDetail(cachedArticle);
+            articleRendered = true;
           }
-        } else {
-          container.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fa-solid fa-circle-xmark" style="font-size:3rem;color:#f87171;margin-bottom:15px;"></i><h3>Gagal Memuat Berita</h3><p>Terjadi kesalahan saat mengambil data dari server.</p></div>';
         }
-      });
-    </script>
+      } catch (e) { }
 
-    <!-- Native Mobile Bottom Navigation (7 Menu Compact) -->
-    <nav class="bottom-nav-mobile" aria-label="Navigasi Bawah">
-      <a href="profil.html" class="bnav-item">
-        <div class="bnav-icon"><i class="fa-solid fa-id-badge"></i></div>
-        <span class="bnav-label">Profil</span>
-      </a>
-      <a href="berita.html" class="bnav-item active">
-        <div class="bnav-icon"><i class="fa-regular fa-newspaper"></i></div>
-        <span class="bnav-label">Berita</span>
-      </a>
-      <a href="index.html#jadwal" class="bnav-item">
-        <div class="bnav-icon"><i class="fa-regular fa-calendar-days"></i></div>
-        <span class="bnav-label">Jadwal</span>
-      </a>
-      <a href="index.html" class="bnav-item bnav-center">
-        <div class="bnav-center-circle">
-          <i class="fa-solid fa-house"></i>
-        </div>
-        <span class="bnav-label">Beranda</span>
-      </a>
-      <a href="galeri.html" class="bnav-item">
-        <div class="bnav-icon"><i class="fa-regular fa-images"></i></div>
-        <span class="bnav-label">Galeri</span>
-      </a>
-      <a href="referensi.html" class="bnav-item">
-        <div class="bnav-icon"><i class="fa-regular fa-folder-open"></i></div>
-        <span class="bnav-label">Referensi</span>
-      </a>
-      <a href="index.html#kontak" class="bnav-item">
-        <div class="bnav-icon"><i class="fa-solid fa-phone"></i></div>
-        <span class="bnav-label">Kontak</span>
-      </a>
-    </nav>
-  </body>
+      function renderArticleDetail(article) {
+        document.title = article.title + " - SIM MKTAS";
+        const currentUrl = encodeURIComponent(window.location.href);
+        const shareTitle = encodeURIComponent(article.title);
+
+        container.innerHTML = `
+            <h1 class="article-title">${article.title}</h1>
+            <div class="article-meta">
+              <span><i class="fa-regular fa-calendar"></i> ${article.date}</span>
+              <span><i class="fa-solid fa-user-pen"></i> Admin MKTAS</span>
+            </div>
+            
+            ${article.image_url ? `<img src="${article.image_url}" class="article-img" alt="${article.title}">` : ''}
+            
+            <div class="article-content">${article.content}</div>
+            
+            <div class="share-container">
+              <span class="share-title">Bagikan Berita:</span>
+              <a href="https://api.whatsapp.com/send?text=${shareTitle}%20${currentUrl}" target="_blank" class="share-btn share-wa" title="Bagikan ke WhatsApp">
+                <i class="fa-brands fa-whatsapp"></i>
+              </a>
+              <a href="https://www.facebook.com/sharer/sharer.php?u=${currentUrl}" target="_blank" class="share-btn share-fb" title="Bagikan ke Facebook">
+                <i class="fa-brands fa-facebook-f"></i>
+              </a>
+              <a href="https://twitter.com/intent/tweet?url=${currentUrl}&text=${shareTitle}" target="_blank" class="share-btn share-tw" title="Bagikan ke Twitter/X">
+                <i class="fa-brands fa-twitter"></i>
+              </a>
+              <a href="https://t.me/share/url?url=${currentUrl}&text=${shareTitle}" target="_blank" class="share-btn share-tg" title="Bagikan ke Telegram">
+                <i class="fa-brands fa-telegram"></i>
+              </a>
+              <button onclick="copyLink()" class="share-btn share-link" title="Salin Link">
+                <i class="fa-solid fa-link"></i>
+              </button>
+            </div>
+          `;
+      }
+
+      // Jika belum ada di cache, muat dari server
+      if (!articleRendered) {
+        fetchAPI('getNews', {}).then(newsRes => {
+          if (newsRes.status === 'success' && Array.isArray(newsRes.data)) {
+            try { localStorage.setItem('mktas_news', JSON.stringify(newsRes.data)); } catch (e) { }
+            const article = newsRes.data.find(n => (n.id == id || n.slug == id) && n.is_published);
+            if (article) {
+              renderArticleDetail(article);
+            } else {
+              container.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fa-solid fa-circle-exclamation" style="font-size:3rem;color:#f87171;margin-bottom:15px;"></i><h3>Berita Tidak Ditemukan</h3><p>Berita mungkin telah dihapus atau tidak dipublikasikan.</p></div>';
+            }
+          } else {
+            container.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fa-solid fa-circle-xmark" style="font-size:3rem;color:#f87171;margin-bottom:15px;"></i><h3>Gagal Memuat Berita</h3><p>Terjadi kesalahan saat mengambil data dari server.</p></div>';
+          }
+        }).catch(() => {
+          container.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fa-solid fa-circle-xmark" style="font-size:3rem;color:#f87171;margin-bottom:15px;"></i><h3>Koneksi Terputus</h3><p>Silakan periksa koneksi internet Anda.</p></div>';
+        });
+      }
+    });
+  </script>
+
+  <!-- Native Mobile Bottom Navigation (7 Menu Compact) -->
+  <nav class="bottom-nav-mobile" aria-label="Navigasi Bawah">
+    <a href="profil.html" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-solid fa-id-badge"></i></div>
+      <span class="bnav-label">Profil</span>
+    </a>
+    <a href="berita.html" class="bnav-item active">
+      <div class="bnav-icon"><i class="fa-regular fa-newspaper"></i></div>
+      <span class="bnav-label">Berita</span>
+    </a>
+    <a href="index.html#jadwal" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-regular fa-calendar-days"></i></div>
+      <span class="bnav-label">Jadwal</span>
+    </a>
+    <a href="index.html" class="bnav-item bnav-center">
+      <div class="bnav-center-circle">
+        <i class="fa-solid fa-house"></i>
+      </div>
+      <span class="bnav-label">Beranda</span>
+    </a>
+    <a href="galeri.html" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-regular fa-images"></i></div>
+      <span class="bnav-label">Galeri</span>
+    </a>
+    <a href="referensi.html" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-regular fa-folder-open"></i></div>
+      <span class="bnav-label">Referensi</span>
+    </a>
+    <a href="index.html#kontak" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-solid fa-phone"></i></div>
+      <span class="bnav-label">Kontak</span>
+    </a>
+  </nav>
+</body>
+
 </html>
