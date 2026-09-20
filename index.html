@@ -535,18 +535,10 @@
     }
 
     // --- DYNAMIC DATA POPULATION ---
-    document.addEventListener('DOMContentLoaded', async () => {
-      // Load Settings
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Tampilkan Pengaturan & Branding Seketika (0 detik dari cache)
       const localSet = JSON.parse(localStorage.getItem('mktas_settings') || '{}');
       let s = localSet;
-      try {
-        if (typeof fetchAPI !== 'undefined') {
-          const res = await fetchAPI('getSettings', {});
-          if (res.status === 'success' && res.data) {
-            s = typeof mergeSettings === 'function' ? mergeSettings(s, res.data) : Object.assign(s, res.data);
-          }
-        }
-      } catch (e) { }
 
       if (typeof applyWarnaSettings === 'function') {
         applyWarnaSettings(s);
@@ -557,61 +549,62 @@
         window.applySettingsToFooter(s);
       }
 
-
-
-      // Populate Mobile Kontak Card (jika elemen tersedia di mobile view)
-      if (s.singkatan_forum) {
-        const mkcCopy = document.getElementById('mkc-copyright-name');
-        if (mkcCopy) mkcCopy.textContent = s.singkatan_forum;
-      }
-      if (s.alamat) {
-        const ar = document.getElementById('mkc-address-row');
-        const at = document.getElementById('mkc-address');
-        if (ar && at) { at.textContent = s.alamat; ar.style.display = 'flex'; }
-      }
-      const rawTelp = s.telp || s.kontak_wa || s.no_hp || '';
-      if (rawTelp) {
-        let cleanTelp = String(rawTelp).replace(/[^0-9]/g, '');
-        if (cleanTelp.startsWith('0')) {
-          cleanTelp = '62' + cleanTelp.substring(1);
-        } else if (cleanTelp.startsWith('8')) {
-          cleanTelp = '62' + cleanTelp;
+      function populateContactDetails(conf) {
+        if (!conf) return;
+        if (conf.singkatan_forum) {
+          const mkcCopy = document.getElementById('mkc-copyright-name');
+          if (mkcCopy) mkcCopy.textContent = conf.singkatan_forum;
         }
-        const mkcPhone = document.getElementById('mkc-phone');
-        const mkcPhoneLink = document.getElementById('mkc-phone-link');
-        if (mkcPhone && mkcPhoneLink) {
-          mkcPhone.textContent = rawTelp;
-          mkcPhoneLink.href = 'https://wa.me/' + cleanTelp;
-          mkcPhoneLink.target = '_blank';
-          mkcPhoneLink.rel = 'noopener noreferrer';
-          mkcPhoneLink.style.display = 'flex';
+        if (conf.alamat) {
+          const ar = document.getElementById('mkc-address-row');
+          const at = document.getElementById('mkc-address');
+          if (ar && at) { at.textContent = conf.alamat; ar.style.display = 'flex'; }
         }
-      }
-      if (s.email) {
-        const mkcEmail = document.getElementById('mkc-email');
-        const mkcEmailLink = document.getElementById('mkc-email-link');
-        if (mkcEmail && mkcEmailLink) {
-          mkcEmail.textContent = s.email;
-          mkcEmailLink.href = 'mailto:' + s.email;
-          mkcEmailLink.style.display = 'flex';
+        const rawTelp = conf.telp || conf.kontak_wa || conf.no_hp || '';
+        if (rawTelp) {
+          let cleanTelp = String(rawTelp).replace(/[^0-9]/g, '');
+          if (cleanTelp.startsWith('0')) {
+            cleanTelp = '62' + cleanTelp.substring(1);
+          } else if (cleanTelp.startsWith('8')) {
+            cleanTelp = '62' + cleanTelp;
+          }
+          const mkcPhone = document.getElementById('mkc-phone');
+          const mkcPhoneLink = document.getElementById('mkc-phone-link');
+          if (mkcPhone && mkcPhoneLink) {
+            mkcPhone.textContent = rawTelp;
+            mkcPhoneLink.href = 'https://wa.me/' + cleanTelp;
+            mkcPhoneLink.target = '_blank';
+            mkcPhoneLink.rel = 'noopener noreferrer';
+            mkcPhoneLink.style.display = 'flex';
+          }
         }
-      }
-      const rawWeb = s.website || s.domain_resmi || '';
-      if (rawWeb) {
-        const webUrl2 = /^https?:\/\//i.test(rawWeb) ? rawWeb : 'https://' + rawWeb;
-        const mkcWeb = document.getElementById('mkc-website');
-        const mkcWebLink = document.getElementById('mkc-website-link');
-        if (mkcWeb && mkcWebLink) {
-          mkcWeb.textContent = rawWeb.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
-          mkcWebLink.href = webUrl2;
-          mkcWebLink.target = '_blank';
-          mkcWebLink.rel = 'noopener noreferrer';
-          mkcWebLink.style.display = 'flex';
+        if (conf.email) {
+          const mkcEmail = document.getElementById('mkc-email');
+          const mkcEmailLink = document.getElementById('mkc-email-link');
+          if (mkcEmail && mkcEmailLink) {
+            mkcEmail.textContent = conf.email;
+            mkcEmailLink.href = 'mailto:' + conf.email;
+            mkcEmailLink.style.display = 'flex';
+          }
+        }
+        const rawWeb = conf.website || conf.domain_resmi || '';
+        if (rawWeb) {
+          const webUrl2 = /^https?:\/\//i.test(rawWeb) ? rawWeb : 'https://' + rawWeb;
+          const mkcWeb = document.getElementById('mkc-website');
+          const mkcWebLink = document.getElementById('mkc-website-link');
+          if (mkcWeb && mkcWebLink) {
+            mkcWeb.textContent = rawWeb.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
+            mkcWebLink.href = webUrl2;
+            mkcWebLink.target = '_blank';
+            mkcWebLink.rel = 'noopener noreferrer';
+            mkcWebLink.style.display = 'flex';
+          }
         }
       }
 
+      populateContactDetails(s);
 
-      // Load Profil Data
+      // Load Profil Data Seketika (0 detik)
       const cachedProfil = JSON.parse(localStorage.getItem('mktas_profil') || '{}');
       const p = Object.assign({}, cachedProfil, {
         pengantar: s.profil_pengantar || cachedProfil.pengantar,
@@ -642,6 +635,21 @@
       } else {
         tbody.innerHTML = '<tr><td colspan="2">Belum ada data organisasi.</td></tr>';
       }
+
+      // Jika cache pengaturan masih kosong (pengunjung baru pertama kali), ambil di latar belakang
+      if (!localSet || Object.keys(localSet).length === 0) {
+        if (typeof fetchAPI !== 'undefined') {
+          fetchAPI('getSettings', {}).then(res => {
+            if (res && res.status === 'success' && res.data) {
+              s = typeof mergeSettings === 'function' ? mergeSettings(s, res.data) : Object.assign(s, res.data);
+              localStorage.setItem('mktas_settings', JSON.stringify(s));
+              if (typeof applyWarnaSettings === 'function') applyWarnaSettings(s);
+              if (typeof window.applySettingsToFooter === 'function') window.applySettingsToFooter(s);
+              populateContactDetails(s);
+            }
+          }).catch(() => {});
+        }
+      }
     });
   </script>
 
@@ -652,12 +660,12 @@
   <script src="js/footer.js"></script>
 
   <script>
-    // Load Public Data
-    document.addEventListener('DOMContentLoaded', async () => {
-
-      // 1. Inisialisasi & Render Slider dengan Caching Instan
+    // Load Public Data (0 Detik Instan + Version Fingerprint Caching)
+    document.addEventListener('DOMContentLoaded', () => {
       let heroSwiperInstance = null;
+      let boardSwiperInstance = null;
 
+      // 1. RENDER FUNCTIONS
       function renderHeroSliders(sliders) {
         const activeSliders = (sliders || []).filter(s => s && s.is_active && s.image_url);
         const sc = document.getElementById('slider-container');
@@ -695,139 +703,93 @@
         }
       }
 
-      // Tampilkan slider dari cache lokal segera (0 detik - tanpa gambar fallback jelek)
-      try {
-        const cachedSliders = JSON.parse(localStorage.getItem('mktas_sliders') || '[]');
-        if (Array.isArray(cachedSliders) && cachedSliders.length > 0) {
-          renderHeroSliders(cachedSliders);
-        }
-      } catch (e) { }
-
-      // Muat slider terbaru dari database di latar belakang
-      fetchAPI('getSliders', {}).then(res => {
-        if (res && res.status === 'success' && Array.isArray(res.data)) {
-          localStorage.setItem('mktas_sliders', JSON.stringify(res.data));
-          renderHeroSliders(res.data);
-        }
-      }).catch(err => console.warn('Gagal memuat slider online:', err));
-
-      // 2. Tampilkan Statistik Instan dari Cache
-      try {
-        const cachedStats = JSON.parse(localStorage.getItem('mktas_stats') || '{}');
-        if (cachedStats.schools !== undefined) document.getElementById('stat-schools').innerText = cachedStats.schools;
-        if (cachedStats.staff !== undefined) document.getElementById('stat-staff').innerText = cachedStats.staff;
-        if (cachedStats.schedules !== undefined) document.getElementById('stat-schedules').innerText = cachedStats.schedules;
-      } catch (e) { }
-
-      // Ambil data Sekolah, Pegawai, dan Jadwal secara paralel (jauh lebih cepat)
-      const [schRes, stfRes, jdwRes] = await Promise.all([
-        fetchAPI('getSchools', {}).catch(() => ({ status: 'error', data: [] })),
-        fetchAPI('getStaff', {}).catch(() => ({ status: 'error', data: [] })),
-        fetchAPI('getSchedules', {}).catch(() => ({ status: 'error', data: [] }))
-      ]);
-
-      const totalSchools = (schRes.status === 'success' && schRes.data) ? schRes.data.length : 0;
-      const totalStaff = (stfRes.status === 'success' && stfRes.data) ? stfRes.data.length : 0;
-      document.getElementById('stat-schools').innerText = totalSchools;
-      document.getElementById('stat-staff').innerText = totalStaff;
-
-      // Buat lookup koordinat dari data sekolah
-      const sekolahKoordMap = {};
-      if (schRes.status === 'success') {
-        schRes.data.forEach(sc => {
-          if (sc.koordinat) sekolahKoordMap[sc.nama] = sc.koordinat;
-        });
+      function renderStats(stats) {
+        if (!stats) return;
+        const schEl = document.getElementById('stat-schools');
+        const stfEl = document.getElementById('stat-staff');
+        const jdwEl = document.getElementById('stat-schedules');
+        if (schEl && stats.schools !== undefined) schEl.innerText = stats.schools;
+        if (stfEl && stats.staff !== undefined) stfEl.innerText = stats.staff;
+        if (jdwEl && stats.schedules !== undefined) jdwEl.innerText = stats.schedules;
       }
 
-      let schedules = [];
-      if (jdwRes.status === 'success') schedules = jdwRes.data;
-      localStorage.setItem('mktas_schedules', JSON.stringify(schedules)); // simpan untuk jadwal.html
-      localStorage.setItem('mktas_koordmap', JSON.stringify(sekolahKoordMap));
+      function renderSchedules(schedules, sekolahKoordMap) {
+        const allScheds = Array.isArray(schedules) ? schedules : [];
+        const koordMap = sekolahKoordMap || {};
 
-      // Split Schedules based on keterangan
-      const past = schedules.filter(s => s.keterangan === 'Terlaksana').sort((a, b) => a.tanggal < b.tanggal ? 1 : -1);
-      const upcoming = schedules.filter(s => s.keterangan === 'Akan Datang').sort((a, b) => a.tanggal > b.tanggal ? 1 : -1);
+        const past = allScheds.filter(s => s.keterangan === 'Terlaksana').sort((a, b) => a.tanggal < b.tanggal ? 1 : -1);
+        const upcoming = allScheds.filter(s => s.keterangan === 'Akan Datang').sort((a, b) => a.tanggal > b.tanggal ? 1 : -1);
 
-      document.getElementById('stat-schedules').innerText = past.length;
+        const jdwEl = document.getElementById('stat-schedules');
+        if (jdwEl) jdwEl.innerText = past.length;
 
-      // Simpan ke cache lokal agar kunjungan berikutnya instan 0 detik
-      try {
-        localStorage.setItem('mktas_stats', JSON.stringify({
-          schools: totalSchools,
-          staff: totalStaff,
-          schedules: past.length
-        }));
-      } catch (e) { }
-
-      // Render Upcoming Schedule (1 item)
-      const upContainer = document.getElementById('upcoming-schedule');
-      if (upcoming.length > 0) {
-        const up = upcoming[0];
-        const upKoord = sekolahKoordMap[up.sekolah] || '';
-        const lokasiBtn = upKoord
-          ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(upKoord)}" target="_blank"
-                 style="display:inline-flex;align-items:center;gap:5px;margin-top:10px;padding:6px 14px;background:rgba(255,255,255,0.25);color:#fff;border-radius:20px;font-size:0.82rem;text-decoration:none;backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.4);">
-                &#x1F4CD; Lokasi
-               </a>`
-          : '';
-        upContainer.innerHTML = `
-            <div class="sched-highlight shadow">
-              <span style="background: rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 4px; font-size: 0.8rem;">Akan Datang</span>
-              <h4 class="mt-2">${up.sekolah}</h4>
-              <p><i class="fa-regular fa-calendar"></i> ${up.tanggal}</p>
-              <p style="font-size: 0.85rem; margin-top: 5px;">${up.keterangan || '-'}</p>
-              ${lokasiBtn}
-            </div>
-          `;
-      } else {
-        upContainer.innerHTML = '<p class="text-muted">Belum ada jadwal baru.</p>';
-      }
-
-      // Render Past Schedules (Max 4)
-      const pastContainer = document.getElementById('past-schedules');
-      if (past.length > 0) {
-        pastContainer.innerHTML = past.slice(0, 4).map(s => {
-          const koord = sekolahKoordMap[s.sekolah] || '';
-          const lokasiBtn = koord
-            ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(koord)}" target="_blank"
-                   title="Lihat lokasi di Google Maps"
-                   style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border:1px solid var(--primary,#4f46e5);color:var(--primary,#4f46e5);border-radius:14px;font-size:0.78rem;text-decoration:none;">
-                  &#x1F4CD; <span class="hide-text-mobile">Lokasi</span>
-                 </a>`
-            : '';
-          const fotoBtn = `<button onclick="showFotoKegiatan('${s.id}')"
-                     title="Foto Kegiatan"
-                     style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border:1px solid #10b981;color:#10b981;border-radius:14px;font-size:0.78rem;background:none;cursor:pointer;">
-                    &#x1F4F7; <span class="hide-text-mobile">Foto</span>
-                   </button>`;
-          return `
-              <div class="sched-item glass-panel" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-                <div style="display:flex; align-items:center; gap:12px; flex:1; min-width:0;">
-                  <i class="fa-solid fa-check-circle" style="color: #10b981; font-size:1.2rem; flex-shrink:0;"></i>
-                  <div style="min-width:0;">
-                    <strong style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.sekolah}</strong>
-                    <span style="font-size: 0.8rem; color: var(--text-muted);">${s.tanggal}</span>
-                  </div>
+        // Render Upcoming Schedule (1 item)
+        const upContainer = document.getElementById('upcoming-schedule');
+        if (upContainer) {
+          if (upcoming.length > 0) {
+            const up = upcoming[0];
+            const upKoord = koordMap[up.sekolah] || up.koordinat || '';
+            const lokasiBtn = upKoord
+              ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(upKoord)}" target="_blank"
+                     style="display:inline-flex;align-items:center;gap:5px;margin-top:10px;padding:6px 14px;background:rgba(255,255,255,0.25);color:#fff;border-radius:20px;font-size:0.82rem;text-decoration:none;backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.4);">
+                    &#x1F4CD; Lokasi
+                   </a>`
+              : '';
+            upContainer.innerHTML = `
+                <div class="sched-highlight shadow">
+                  <span style="background: rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 4px; font-size: 0.8rem;">Akan Datang</span>
+                  <h4 class="mt-2">${up.sekolah}</h4>
+                  <p><i class="fa-regular fa-calendar"></i> ${up.tanggal}</p>
+                  <p style="font-size: 0.85rem; margin-top: 5px;">${up.keterangan || '-'}</p>
+                  ${lokasiBtn}
                 </div>
-                ${lokasiBtn || fotoBtn ? `<div style="display:flex; gap:6px; flex-shrink:0;">${lokasiBtn}${fotoBtn}</div>` : ''}
-              </div>
-          `;
-        }).join('');
-      } else {
-        pastContainer.innerHTML = '<p class="text-muted">Belum ada jadwal terlaksana.</p>';
-      }
-
-        // Hapus injeksi tombol Jadwal Lengkap kedua karena sudah ada secara statis di HTML
-        if (schedules.length > 0) {
-          // Hanya biarkan HTML yang menangani tombol
+              `;
+          } else {
+            upContainer.innerHTML = '<p class="text-muted">Belum ada jadwal baru.</p>';
+          }
         }
 
+        // Render Past Schedules (Max 4)
+        const pastContainer = document.getElementById('past-schedules');
+        if (pastContainer) {
+          if (past.length > 0) {
+            pastContainer.innerHTML = past.slice(0, 4).map(s => {
+              const koord = koordMap[s.sekolah] || s.koordinat || '';
+              const lokasiBtn = koord
+                ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(koord)}" target="_blank"
+                       title="Lihat lokasi di Google Maps"
+                       style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border:1px solid var(--primary,#4f46e5);color:var(--primary,#4f46e5);border-radius:14px;font-size:0.78rem;text-decoration:none;">
+                      &#x1F4CD; <span class="hide-text-mobile">Lokasi</span>
+                     </a>`
+                : '';
+              const fotoBtn = `<button onclick="showFotoKegiatan('${s.id}')"
+                         title="Foto Kegiatan"
+                         style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border:1px solid #10b981;color:#10b981;border-radius:14px;font-size:0.78rem;background:none;cursor:pointer;">
+                        &#x1F4F7; <span class="hide-text-mobile">Foto</span>
+                       </button>`;
+              return `
+                  <div class="sched-item glass-panel" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                    <div style="display:flex; align-items:center; gap:12px; flex:1; min-width:0;">
+                      <i class="fa-solid fa-check-circle" style="color: #10b981; font-size:1.2rem; flex-shrink:0;"></i>
+                      <div style="min-width:0;">
+                        <strong style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.sekolah}</strong>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">${s.tanggal}</span>
+                      </div>
+                    </div>
+                    ${lokasiBtn || fotoBtn ? `<div style="display:flex; gap:6px; flex-shrink:0;">${lokasiBtn}${fotoBtn}</div>` : ''}
+                  </div>
+              `;
+            }).join('');
+          } else {
+            pastContainer.innerHTML = '<p class="text-muted">Belum ada jadwal terlaksana.</p>';
+          }
+        }
+      }
 
-      // 3. Load News (Max 5)
-      const newsRes = await fetchAPI('getNews', {});
-      const newsContainer = document.getElementById('news-container');
-      if (newsRes.status === 'success' && newsRes.data) {
-        const publishedNews = newsRes.data.filter(n => n.is_published).slice(0, 5);
+      function renderNews(newsList) {
+        const newsContainer = document.getElementById('news-container');
+        if (!newsContainer) return;
+        const publishedNews = (newsList || []).filter(n => n && n.is_published).slice(0, 5);
         if (publishedNews.length > 0) {
           let newsHtml = '<div class="news-grid">';
           newsHtml += publishedNews.map(n => {
@@ -837,10 +799,7 @@
             const detailUrl = (window.location.protocol.startsWith('http') && !window.location.hostname.includes('github.io'))
               ? `${baseDomain}/berita/${slug}.html`
               : `berita/${slug}.html`;
-            
-            // Hapus tag HTML dari konten untuk preview
-            const cleanContent = String(n.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-            
+
             return `
               <div class="news-card shadow" onclick="window.location.href='${detailUrl}'">
                 <img src="${n.image_url || 'https://via.placeholder.com/120x80?text=News'}" class="news-img" alt="Berita">
@@ -865,51 +824,193 @@
         } else {
           newsContainer.innerHTML = '<p class="text-muted">Belum ada berita dipublikasikan.</p>';
         }
-      } else {
-        newsContainer.innerHTML = '<p class="text-muted">Belum ada berita.</p>';
       }
 
-      // 4. Load Board Members
-      const boardRes = await fetchAPI('getBoardMembers', {});
-      const boardContainer = document.getElementById('board-container');
-      if (boardRes.status === 'success' && boardRes.data && boardRes.data.length > 0) {
-        boardContainer.innerHTML = boardRes.data.map(b => `
-            <div class="swiper-slide">
-              <div class="board-card glass-panel shadow">
-                <img src="${b.image_url || 'https://via.placeholder.com/80'}" class="board-img" alt="${b.name}">
-                <div class="board-name">${b.name}</div>
-                <div class="board-pos">${b.position}</div>
+      function renderBoard(boardList) {
+        const boardContainer = document.getElementById('board-container');
+        if (!boardContainer) return;
+        const activeMembers = Array.isArray(boardList) ? boardList : [];
+        if (activeMembers.length > 0) {
+          boardContainer.innerHTML = activeMembers.map(b => `
+              <div class="swiper-slide">
+                <div class="board-card glass-panel shadow">
+                  <img src="${b.image_url || 'https://via.placeholder.com/80'}" class="board-img" alt="${b.name}">
+                  <div class="board-name">${b.name}</div>
+                  <div class="board-pos">${b.position}</div>
+                </div>
               </div>
-            </div>
-          `).join('');
+            `).join('');
 
-        new Swiper('.board-slider', {
-          slidesPerView: 2,
-          spaceBetween: 20,
-          loop: true,
-          autoplay: { delay: 3000, disableOnInteraction: false },
-          breakpoints: {
-            640: { slidesPerView: 3 },
-            768: { slidesPerView: 4 },
-            1024: { slidesPerView: 5 },
+          if (boardSwiperInstance) {
+            boardSwiperInstance.update();
+          } else {
+            boardSwiperInstance = new Swiper('.board-slider', {
+              slidesPerView: 2,
+              spaceBetween: 20,
+              loop: activeMembers.length > 2,
+              autoplay: { delay: 3000, disableOnInteraction: false },
+              breakpoints: {
+                640: { slidesPerView: 3 },
+                768: { slidesPerView: 4 },
+                1024: { slidesPerView: 5 },
+              }
+            });
           }
-        });
-      } else {
-        boardContainer.innerHTML = '<p class="text-center text-muted w-100">Data pengurus belum tersedia.</p>';
+        } else {
+          boardContainer.innerHTML = '<p class="text-center text-muted w-100">Data pengurus belum tersedia.</p>';
+        }
       }
 
-      // 5. Load Socials
-      const socRes = await fetchAPI('getSocials', {});
-      const socContainer = document.getElementById('social-container');
-      if (socRes.status === 'success' && socRes.data) {
-        const socHtml = socRes.data.length > 0
-          ? socRes.data.map(s => `<a href="${s.url}" target="_blank" title="${s.platform}"><i class="${s.icon || 'fa-solid fa-link'}"></i></a>`).join('')
-          : '<p>Belum ada media sosial ditambahkan.</p>';
-        if (socContainer) socContainer.innerHTML = socHtml;
-        // Also populate mobile kontak card socials
+      function renderSocials(socialsList) {
+        const socContainer = document.getElementById('social-container');
         const mkcSoc = document.getElementById('mkc-socials-container');
-        if (mkcSoc && socRes.data.length > 0) mkcSoc.innerHTML = socHtml;
+        const socData = Array.isArray(socialsList) ? socialsList : [];
+        if (socData.length > 0) {
+          const socHtml = socData.map(s => `<a href="${s.url}" target="_blank" title="${s.platform}"><i class="${s.icon || 'fa-solid fa-link'}"></i></a>`).join('');
+          if (socContainer) socContainer.innerHTML = socHtml;
+          if (mkcSoc) mkcSoc.innerHTML = socHtml;
+        } else {
+          if (socContainer) socContainer.innerHTML = '<p>Belum ada media sosial ditambahkan.</p>';
+        }
       }
+
+      // 2. STEP A: TAMPILKAN CACHE INSTAN (0.00 DETIK TANPA MENUNGGU JARINGAN)
+      const cachedVersion = localStorage.getItem('mktas_data_version') || '';
+      const cachedSliders = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_sliders', []) : JSON.parse(localStorage.getItem('mktas_sliders') || '[]');
+      const cachedStats = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_stats', null) : JSON.parse(localStorage.getItem('mktas_stats') || 'null');
+      const cachedSchedules = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_schedules', []) : JSON.parse(localStorage.getItem('mktas_schedules') || '[]');
+      const cachedKoordMap = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_koordmap', {}) : JSON.parse(localStorage.getItem('mktas_koordmap') || '{}');
+      const cachedNews = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_news', []) : JSON.parse(localStorage.getItem('mktas_news') || '[]');
+      const cachedBoard = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_board', []) : JSON.parse(localStorage.getItem('mktas_board') || '[]');
+      const cachedSocials = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_socials', []) : JSON.parse(localStorage.getItem('mktas_socials') || '[]');
+
+      if (Array.isArray(cachedSliders) && cachedSliders.length > 0) renderHeroSliders(cachedSliders);
+      if (cachedStats) renderStats(cachedStats);
+      if (Array.isArray(cachedSchedules) && cachedSchedules.length > 0) renderSchedules(cachedSchedules, cachedKoordMap);
+      if (Array.isArray(cachedNews) && cachedNews.length > 0) renderNews(cachedNews);
+      if (Array.isArray(cachedBoard) && cachedBoard.length > 0) renderBoard(cachedBoard);
+      if (Array.isArray(cachedSocials) && cachedSocials.length > 0) renderSocials(cachedSocials);
+
+      // 3. STEP B: CEK VERSI DI LATAR BELAKANG (SUPER RINGAN & HEMAT SPREADSHEET)
+      const hasAllCache = cachedStats && cachedSchedules.length > 0 && cachedNews.length > 0 && cachedBoard.length > 0;
+
+      function applyBundleData(d, newVer) {
+        if (!d) return;
+        if (newVer) localStorage.setItem('mktas_data_version', newVer);
+
+        if (Array.isArray(d.sliders)) {
+          localStorage.setItem('mktas_sliders', JSON.stringify(d.sliders));
+          renderHeroSliders(d.sliders);
+        }
+        if (d.stats) {
+          localStorage.setItem('mktas_stats', JSON.stringify(d.stats));
+          renderStats(d.stats);
+        }
+        if (Array.isArray(d.schedules)) {
+          localStorage.setItem('mktas_schedules', JSON.stringify(d.schedules));
+          if (d.sekolahKoordMap) localStorage.setItem('mktas_koordmap', JSON.stringify(d.sekolahKoordMap));
+          renderSchedules(d.schedules, d.sekolahKoordMap || {});
+        }
+        if (Array.isArray(d.news)) {
+          localStorage.setItem('mktas_news', JSON.stringify(d.news));
+          renderNews(d.news);
+        }
+        if (Array.isArray(d.board)) {
+          localStorage.setItem('mktas_board', JSON.stringify(d.board));
+          renderBoard(d.board);
+        }
+        if (Array.isArray(d.socials)) {
+          localStorage.setItem('mktas_socials', JSON.stringify(d.socials));
+          renderSocials(d.socials);
+        }
+        if (d.settings && Object.keys(d.settings).length > 0) {
+          let curSet = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_settings', {}) : JSON.parse(localStorage.getItem('mktas_settings') || '{}');
+          curSet = typeof mergeSettings === 'function' ? mergeSettings(curSet, d.settings) : Object.assign(curSet, d.settings);
+          localStorage.setItem('mktas_settings', JSON.stringify(curSet));
+          if (typeof applyWarnaSettings === 'function') applyWarnaSettings(curSet);
+          if (typeof window.applySettingsToFooter === 'function') window.applySettingsToFooter(curSet);
+        }
+      }
+
+      function fetchIndividualFallback(newVer) {
+        Promise.all([
+          fetchAPI('getSchools', {}).catch(() => ({ status: 'error', data: [] })),
+          fetchAPI('getStaff', {}).catch(() => ({ status: 'error', data: [] })),
+          fetchAPI('getSchedules', {}).catch(() => ({ status: 'error', data: [] })),
+          fetchAPI('getNews', {}).catch(() => ({ status: 'error', data: [] })),
+          fetchAPI('getBoardMembers', {}).catch(() => ({ status: 'error', data: [] })),
+          fetchAPI('getSocials', {}).catch(() => ({ status: 'error', data: [] })),
+          fetchAPI('getSliders', {}).catch(() => ({ status: 'error', data: [] }))
+        ]).then(([schRes, stfRes, jdwRes, newsRes, boardRes, socRes, sldRes]) => {
+          if (newVer) localStorage.setItem('mktas_data_version', newVer);
+
+          if (sldRes.status === 'success' && Array.isArray(sldRes.data)) {
+            localStorage.setItem('mktas_sliders', JSON.stringify(sldRes.data));
+            renderHeroSliders(sldRes.data);
+          }
+
+          const totalSchools = (schRes.status === 'success' && schRes.data) ? schRes.data.length : 0;
+          const totalStaff = (stfRes.status === 'success' && stfRes.data) ? stfRes.data.length : 0;
+          let schedules = (jdwRes.status === 'success' && jdwRes.data) ? jdwRes.data : [];
+          
+          const sekolahKoordMap = {};
+          if (schRes.status === 'success' && schRes.data) {
+            schRes.data.forEach(sc => { if (sc.koordinat) sekolahKoordMap[sc.nama] = sc.koordinat; });
+          }
+
+          const past = schedules.filter(s => s.keterangan === 'Terlaksana');
+          const stats = { schools: totalSchools, staff: totalStaff, schedules: past.length };
+
+          localStorage.setItem('mktas_stats', JSON.stringify(stats));
+          localStorage.setItem('mktas_schedules', JSON.stringify(schedules));
+          localStorage.setItem('mktas_koordmap', JSON.stringify(sekolahKoordMap));
+          renderStats(stats);
+          renderSchedules(schedules, sekolahKoordMap);
+
+          if (newsRes.status === 'success' && Array.isArray(newsRes.data)) {
+            localStorage.setItem('mktas_news', JSON.stringify(newsRes.data));
+            renderNews(newsRes.data);
+          }
+
+          if (boardRes.status === 'success' && Array.isArray(boardRes.data)) {
+            localStorage.setItem('mktas_board', JSON.stringify(boardRes.data));
+            renderBoard(boardRes.data);
+          }
+
+          if (socRes.status === 'success' && Array.isArray(socRes.data)) {
+            localStorage.setItem('mktas_socials', JSON.stringify(socRes.data));
+            renderSocials(socRes.data);
+          }
+        }).catch(e => console.warn('[Cache] Individual fallback error:', e));
+      }
+
+      fetchAPI('getDataVersion', {}).then(vRes => {
+        const serverVersion = (vRes && vRes.status === 'success' && vRes.version) ? String(vRes.version) : '';
+
+        // JIKA VERSI COCOK & CACHE LENGKAP: NOL PANGGILAN SPREADSHEET!
+        if (serverVersion && serverVersion === cachedVersion && hasAllCache) {
+          console.log('[Cache] Versi server cocok (' + serverVersion + '). Nol panggilan spreadsheet.');
+          return;
+        }
+
+        console.log('[Cache] Mengambil pembaruan data publik (Versi baru:', serverVersion, ')...');
+
+        // Coba ambil 1 bundle super cepat
+        fetchAPI('getPublicBundle', {}).then(bRes => {
+          if (bRes && bRes.status === 'success' && bRes.data) {
+            applyBundleData(bRes.data, bRes.version || serverVersion);
+          } else {
+            fetchIndividualFallback(serverVersion);
+          }
+        }).catch(() => {
+          fetchIndividualFallback(serverVersion);
+        });
+      }).catch(err => {
+        console.warn('[Cache] Pengecekan versi offline/gagal:', err);
+        if (!hasAllCache) {
+          fetchIndividualFallback('');
+        }
+      });
     });
   </script>
   <!-- Modal Foto Kegiatan (Jadwal) -->
