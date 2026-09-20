@@ -1390,9 +1390,9 @@ async function loadProfilOrganisasi() {
       if (el) el.value = settings.profil_sejarah || '';
     }
 
-    // Data Organisasi
-    const elData = document.getElementById('profil-data');
-    if (elData && settings.profil_data) elData.value = settings.profil_data;
+    // Sekilas Info (Running Text)
+    const elInfo = document.getElementById('profil-sekilas-info') || document.getElementById('profil-data');
+    if (elInfo) elInfo.value = settings.sekilas_info || settings.profil_sekilas_info || settings.profil_data || '';
     
     if (settings.profil_struktur) {
       const urlInput = document.getElementById('profil-struktur-url');
@@ -1445,11 +1445,14 @@ async function saveProfilOrganisasi() {
       return document.getElementById(fallbackId)?.value || '';
     };
 
+    const sekilasInfo = document.getElementById('profil-sekilas-info')?.value || document.getElementById('profil-data')?.value || '';
+
     const data = {
       pengantar: getQuillContent(quillPengantar, 'profil-pengantar'),
       visimisi: getQuillContent(quillVisimisi, 'profil-visimisi'),
       sejarah: getQuillContent(quillSejarah, 'profil-sejarah'),
-      data: document.getElementById('profil-data')?.value || '',
+      sekilas_info: sekilasInfo,
+      data: sekilasInfo,
       struktur: strukturUrl
     };
     
@@ -1458,7 +1461,9 @@ async function saveProfilOrganisasi() {
         profil_pengantar: data.pengantar,
         profil_visimisi: data.visimisi,
         profil_sejarah: data.sejarah,
-        profil_data: data.data,
+        profil_data: data.sekilas_info,
+        sekilas_info: data.sekilas_info,
+        profil_sekilas_info: data.sekilas_info,
         profil_struktur: data.struktur
       });
       if (!saveRes || saveRes.status !== 'success') {
@@ -1469,7 +1474,8 @@ async function saveProfilOrganisasi() {
         pengantar: data.pengantar,
         visimisi: data.visimisi,
         sejarah: data.sejarah,
-        data: data.data,
+        sekilas_info: data.sekilas_info,
+        data: data.sekilas_info,
         struktur: data.struktur
       }));
 
