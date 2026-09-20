@@ -25,7 +25,8 @@ async function loadSekolah(forceRefresh = false) {
 
   // 1. Tampilkan data seketika jika ada cache lokal (0 ms)
   const localSchools = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_schools', []) : JSON.parse(localStorage.getItem('mktas_schools') || '[]');
-  const cachedVer = localStorage.getItem('mktas_data_version') || '';
+  const verKey = 'mktas_ver_schools';
+  const cachedVer = localStorage.getItem(verKey) || '';
 
   if (Array.isArray(localSchools) && localSchools.length > 0 && !forceRefresh) {
     cachedSchools = localSchools;
@@ -62,7 +63,7 @@ async function loadSekolah(forceRefresh = false) {
 
     if (result.status === "success" && Array.isArray(result.data)) {
       cachedSchools = result.data;
-      if (serverVer) localStorage.setItem('mktas_data_version', serverVer);
+      if (serverVer) localStorage.setItem(verKey, serverVer);
       try { localStorage.setItem('mktas_schools', JSON.stringify(cachedSchools)); } catch (e) { }
       filterSekolah();
       if (pagination) pagination.style.visibility = "visible";
@@ -156,10 +157,11 @@ async function loadPegawai(forceRefresh = false) {
   const cacheKey = (currentUser && currentUser.role === "Sekolah" && currentUser.school_id)
     ? `mktas_staff_${currentUser.school_id}`
     : 'mktas_staff_all';
+  const verKey = `mktas_ver_staff_${(currentUser && currentUser.role === "Sekolah" && currentUser.school_id) ? currentUser.school_id : 'all'}`;
   const localStaff = (typeof safeReadJsonStorage === 'function')
     ? safeReadJsonStorage(cacheKey, [])
     : JSON.parse(localStorage.getItem(cacheKey) || '[]');
-  const cachedVer = localStorage.getItem('mktas_data_version') || '';
+  const cachedVer = localStorage.getItem(verKey) || '';
 
   // 1. Tampilkan data seketika jika ada cache lokal (0 ms)
   if (Array.isArray(localStaff) && localStaff.length > 0 && !forceRefresh) {
@@ -203,7 +205,7 @@ async function loadPegawai(forceRefresh = false) {
 
     if (result.status === "success" && Array.isArray(result.data)) {
       allPegawaiData = result.data;
-      if (serverVer) localStorage.setItem('mktas_data_version', serverVer);
+      if (serverVer) localStorage.setItem(verKey, serverVer);
       try { localStorage.setItem(cacheKey, JSON.stringify(allPegawaiData)); } catch(e) {}
 
       populatePegawaiSchoolFilter();
