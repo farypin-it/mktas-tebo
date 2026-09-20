@@ -560,35 +560,69 @@ let currentLaporanPage = 1;
 let filteredLaporanData = [];
 const LAPORAN_PER_PAGE = 10;
 let allLaporanData = [];
-async function loadLaporan() {
+async function loadLaporan(forceRefresh = false) {
   document.getElementById("loader-laporan").classList.add("hidden");
-  document.querySelector("#table-laporan tbody").innerHTML = '<tr><td colspan="5" class="table-loading-cell"><div class="loader"></div><div>Memuat data laporan kegiatan...</div></td></tr>';
   showLaporanView("tabel");
 
+  // 1. Tampilkan Seketika dari Cache (0.00 Detik)
+  const localSchedules = (typeof safeReadJsonStorage === 'function') 
+    ? safeReadJsonStorage('mktas_schedules', []) 
+    : JSON.parse(localStorage.getItem('mktas_schedules') || '[]');
+  const cachedVer = localStorage.getItem('mktas_data_version') || '';
+  const hasCache = Array.isArray(localSchedules) && localSchedules.length > 0;
+
+  if (hasCache && !forceRefresh) {
+    allLaporanData = localSchedules;
+    populateFilterLaporanTahun(allLaporanData);
+    filterLaporan();
+  } else {
+    document.querySelector("#table-laporan tbody").innerHTML = '<tr><td colspan="5" class="table-loading-cell"><div class="loader"></div><div>Memuat data laporan kegiatan...</div></td></tr>';
+  }
+
+  // 2. Cek Versi Data di Latar Belakang (Non-blocking)
   try {
+    const vRes = await fetchAPI('getDataVersion', {});
+    const serverVer = (vRes && vRes.status === 'success' && vRes.version) ? String(vRes.version) : '';
+
+    // Jika versi cocok dan cache sudah tampil: SELESAI (0 panggilan spreadsheet)
+    if (serverVer && serverVer === cachedVer && hasCache && !forceRefresh) {
+      document.getElementById("loader-laporan").classList.add("hidden");
+      return;
+    }
+
     const result = await fetchAPI('getSchedules');
 
-    if (result.status === "success") {
+    if (result.status === "success" && Array.isArray(result.data)) {
       allLaporanData = result.data;
-      
-      // Populate unique years in filter dropdown
-      const filterTahun = document.getElementById("filter-laporan-tahun");
-      if(filterTahun) {
-        const uniqueYears = [...new Set(allLaporanData.map(item => item.tahun))];
-        let optionsHtml = '<option value="">Semua Tahun</option>';
-        uniqueYears.sort((a,b)=>b-a).forEach(yr => optionsHtml += `<option value="${yr}">${yr}</option>`);
-        filterTahun.innerHTML = optionsHtml;
-      }
-      
+      allSchedules = result.data;
+      if (serverVer) localStorage.setItem('mktas_data_version', serverVer);
+      try { localStorage.setItem('mktas_schedules', JSON.stringify(result.data)); } catch (e) {}
+
+      populateFilterLaporanTahun(allLaporanData);
       filterLaporan();
-    } else {
+    } else if (!hasCache) {
       document.querySelector("#table-laporan tbody").innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Gagal memuat laporan.</td></tr>`;
     }
   } catch (err) {
     console.error('[Laporan] Error:', err);
-    document.querySelector("#table-laporan tbody").innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Gagal memuat laporan.</td></tr>`;
+    if (!hasCache) {
+      document.querySelector("#table-laporan tbody").innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Gagal memuat laporan.</td></tr>`;
+    }
   }
   document.getElementById("loader-laporan").classList.add("hidden");
+}
+
+function populateFilterLaporanTahun(schedules) {
+  const filterTahun = document.getElementById("filter-laporan-tahun");
+  if (!filterTahun) return;
+  const currentVal = filterTahun.value;
+  const uniqueYears = [...new Set((schedules || []).map(item => item.tahun).filter(Boolean))];
+  let optionsHtml = '<option value="">Semua Tahun</option>';
+  uniqueYears.sort((a, b) => b - a).forEach(yr => {
+    const sel = String(yr) === String(currentVal) ? ' selected' : '';
+    optionsHtml += `<option value="${yr}"${sel}>${yr}</option>`;
+  });
+  filterTahun.innerHTML = optionsHtml;
 }
 
 function filterLaporan() {
@@ -681,29 +715,96 @@ function formatTanggalKegiatan(value) {
   return d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-function getLaporanRekapRows() {
-  let attendedSchools = [];
-  const attendedStaffIds = new Set();
-  let hasStaffLists = false;
-  if (attendanceData[currentJadwalContext.id]) {
-    const scheduleAttendance = attendanceData[currentJadwalContext.id];
-    attendedSchools = Object.keys(scheduleAttendance).filter(k => !k.startsWith('staff_') && scheduleAttendance[k] === true);
-    Object.keys(scheduleAttendance).forEach(key => {
-      if (key.startsWith('staff_')) {
-        hasStaffLists = true;
-      }
-      if (key.startsWith('staff_') && Array.isArray(scheduleAttendance[key])) {
-        scheduleAttendance[key].forEach(id => attendedStaffIds.add(String(id)));
-      }
+let currentLaporanAttendingStaff = [];
+
+function getLaporanRekapRows(staffSource, attSource) {
+  const staffPool = (Array.isArray(staffSource) && staffSource.length > 0)
+    ? staffSource
+    : (safeReadJsonStorage('mktas_staff_all', []) || allPegawaiData || []);
+
+  const scheduleAttendance = attSource || (currentJadwalContext && attendanceData[currentJadwalContext.id]) || {};
+
+  const schoolMap = {};
+  if (cachedSchools && cachedSchools.length > 0) {
+    cachedSchools.forEach(s => {
+      schoolMap[String(s.id)] = s.nama;
     });
   }
 
-  if (attendedSchools.length === 0) return [];
+  // Cari semua sekolah yang ditandai hadir (status == true / 1)
+  const attendedSchoolIds = Object.keys(scheduleAttendance).filter(k => 
+    !k.startsWith('staff_') && 
+    (scheduleAttendance[k] === true || scheduleAttendance[k] === 1 || String(scheduleAttendance[k]).toLowerCase() === 'true' || String(scheduleAttendance[k]) === '1')
+  );
 
-  return allPegawaiData.filter(p => {
-    if (hasStaffLists) return attendedStaffIds.has(String(p.id));
-    return attendedSchools.includes(String(p.school_id));
+  if (attendedSchoolIds.length === 0) {
+    currentLaporanAttendingStaff = [];
+    return [];
+  }
+
+  const result = [];
+  const addedStaffIds = new Set();
+
+  attendedSchoolIds.forEach(schoolId => {
+    const staffKey = 'staff_' + schoolId;
+    const attendedStaffList = Array.isArray(scheduleAttendance[staffKey]) ? scheduleAttendance[staffKey] : [];
+    const schoolName = schoolMap[String(schoolId)] || `Sekolah (${schoolId})`;
+
+    if (attendedStaffList.length > 0) {
+      // Ada spesifik pegawai yang dicentang hadir untuk sekolah ini
+      attendedStaffList.forEach(sid => {
+        const sidStr = String(sid);
+        if (!addedStaffIds.has(sidStr)) {
+          const found = staffPool.find(p => String(p.id) === sidStr);
+          if (found) {
+            addedStaffIds.add(sidStr);
+            result.push(Object.assign({}, found, {
+              sekolah_nama: found.sekolah_nama && found.sekolah_nama !== '-' ? found.sekolah_nama : schoolName
+            }));
+          }
+        }
+      });
+    } else {
+      // Tidak ada spesifik ID -> masukkan seluruh pegawai terdaftar dari sekolah tersebut
+      const schoolStaff = staffPool.filter(p => String(p.school_id) === String(schoolId));
+      if (schoolStaff.length > 0) {
+        schoolStaff.forEach(p => {
+          const sidStr = String(p.id);
+          if (!addedStaffIds.has(sidStr)) {
+            addedStaffIds.add(sidStr);
+            result.push(Object.assign({}, p, {
+              sekolah_nama: p.sekolah_nama && p.sekolah_nama !== '-' ? p.sekolah_nama : schoolName
+            }));
+          }
+        });
+      } else {
+        // Jika sekolah hadir tapi belum memiliki akun pegawai spesifik
+        result.push({
+          id: 'temp_' + schoolId,
+          nama: 'Perwakilan Sekolah',
+          nama_lengkap: 'Perwakilan Sekolah',
+          nip: '-',
+          nama_jabatan_tugas: 'Tenaga Administrasi',
+          jabatan_tugas: 'Tenaga Administrasi',
+          nama_jabatan_sk: 'Tenaga Administrasi',
+          sekolah_nama: schoolName
+        });
+      }
+    }
   });
+
+  // Urutkan berdasarkan Nama Sekolah, lalu Nama Pegawai
+  result.sort((a, b) => {
+    const sA = (a.sekolah_nama || '').toLowerCase();
+    const sB = (b.sekolah_nama || '').toLowerCase();
+    if (sA !== sB) return sA.localeCompare(sB);
+    const nA = (a.nama || a.nama_lengkap || '').toLowerCase();
+    const nB = (b.nama || b.nama_lengkap || '').toLowerCase();
+    return nA.localeCompare(nB);
+  });
+
+  currentLaporanAttendingStaff = result;
+  return result;
 }
 
 function renderLaporanRekapMeta() {
@@ -716,6 +817,75 @@ function renderLaporanRekapMeta() {
 
   sekolahEl.textContent = sekolah;
   tanggalEl.textContent = tanggal;
+}
+
+function renderLaporanRekapTable(staffList, scheduleAttendance) {
+  const tbody = document.querySelector("#table-laporan-rekap tbody");
+  if (!tbody) return;
+
+  const attendingStaff = getLaporanRekapRows(staffList, scheduleAttendance);
+
+  if (attendingStaff.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 25px;"><i class="fa-solid fa-users-slash" style="font-size: 1.6rem; display: block; margin-bottom: 6px; opacity: 0.5;"></i>Belum ada sekolah yang tercatat hadir pada jadwal ini.</td></tr>`;
+    return;
+  }
+
+  let html = "";
+  attendingStaff.forEach(p => {
+    const namaPegawai = p.nama || p.nama_lengkap || '-';
+    const nipPegawai = p.nip && p.nip !== '-' ? `NIP: ${p.nip}` : 'NIP: -';
+    const jabatanPegawai = p.nama_jabatan_tugas || p.jabatan_tugas || p.nama_jabatan_sk || p.jabatan_sk || p.jabatan || 'Tenaga Administrasi';
+    const namaSekolah = p.sekolah_nama || '-';
+
+    html += `
+      <tr>
+        <td>
+          <b>${namaPegawai}</b><br>
+          <small style="color: var(--text-muted);">${nipPegawai}</small>
+        </td>
+        <td>
+          <span style="background: var(--bg-gradient-end, rgba(0,0,0,0.05)); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: 500;">
+            ${jabatanPegawai}
+          </span>
+        </td>
+        <td><strong style="color: var(--primary-color, #2563eb);">${namaSekolah}</strong></td>
+        <td style="text-align: center;">
+          <span style="background: #10b981; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; display: inline-flex; align-items: center; gap: 4px;">
+            <i class="fa-solid fa-check"></i> Hadir
+          </span>
+        </td>
+      </tr>
+    `;
+  });
+  tbody.innerHTML = html;
+}
+
+function setupLaporanDokumenUploadVisibility() {
+  const panelUpload = document.getElementById("panel-upload-laporan");
+  if (!panelUpload) return;
+  const grid = document.getElementById("laporan-dokumen-grid") || panelUpload.parentElement;
+  
+  const currentUser = (typeof window.currentUser !== 'undefined' && window.currentUser) ? window.currentUser : (JSON.parse(localStorage.getItem('mktas_user') || '{}'));
+  const isSekolah = currentUser && currentUser.role === 'Sekolah';
+
+  // Sekolah hanya dapat mengunggah jika menjadi tuan rumah jadwal ini
+  let canUpload = !isSekolah;
+  if (isSekolah && currentJadwalContext) {
+    const userSchoolId = String(currentUser.school_id || '').trim();
+    const userSchoolNama = String(currentUser.nama || '').trim().toLowerCase();
+    const hostSchool = String(currentJadwalContext.sekolah || currentJadwalContext.nama_sekolah || '').trim().toLowerCase();
+    if (userSchoolId && (hostSchool === userSchoolNama || (currentJadwalContext.school_id && String(currentJadwalContext.school_id) === userSchoolId))) {
+      canUpload = true;
+    }
+  }
+
+  if (canUpload) {
+    panelUpload.style.display = 'block';
+    if (grid) grid.style.gridTemplateColumns = '1fr 1fr';
+  } else {
+    panelUpload.style.display = 'none';
+    if (grid) grid.style.gridTemplateColumns = '1fr';
+  }
 }
 
 function bukaPratinjauRekapPDF() {
@@ -734,7 +904,7 @@ function bukaPratinjauRekapPDF() {
   const kegiatanNama = 'Musyawarah Kerja Tenaga Administrasi Sekolah';
   const sekolahTuanRumah = currentJadwalContext && (currentJadwalContext.sekolah || currentJadwalContext.nama_sekolah || 'Nama Sekolah Tuan Rumah');
   const tanggalKegiatan = currentJadwalContext && currentJadwalContext.tanggal ? formatTanggalKegiatan(currentJadwalContext.tanggal) : '-';
-  const rows = getLaporanRekapRows();
+  const rows = (currentLaporanAttendingStaff && currentLaporanAttendingStaff.length > 0) ? currentLaporanAttendingStaff : getLaporanRekapRows();
 
   const tableRows = rows.length
     ? rows.map((p, idx) => `
@@ -744,7 +914,7 @@ function bukaPratinjauRekapPDF() {
             <div style="font-weight: bold;">${p.nama || p.nama_lengkap || '-'}</div>
             <div style="font-size: 10px; color: #222; margin-top: 2px;">NIP: ${p.nip || '-'}</div>
           </td>
-          <td style="padding: 8px 6px; border: 1px solid #222;">${p.nama_jabatan_sk || p.jabatan_sk || p.jabatan || '-'}</td>
+          <td style="padding: 8px 6px; border: 1px solid #222;">${p.nama_jabatan_sk || p.jabatan_sk || p.nama_jabatan_tugas || p.jabatan_tugas || p.jabatan || '-'}</td>
           <td style="padding: 8px 6px; border: 1px solid #222;">${p.sekolah_nama || '-'}</td>
           <td style="padding: 8px 6px; border: 1px solid #222; width: 80px; text-align: center;">&nbsp;</td>
         </tr>
@@ -829,42 +999,79 @@ async function openLaporanDetail(jadwalId) {
   currentJadwalContext = allSchedules.find(item => item.id == jadwalId) || {};
   document.getElementById("judul-laporan-detail").innerText = `Detail Laporan (ID: ${jadwalId})`;
   
-  // Activate rekap tab by default
+  // Aktifkan tab rekap kehadiran secara default
   const nav = document.querySelector('#laporan-view-detail .tabs-nav');
   if(nav) {
     const firstTab = nav.querySelector('button');
     if(firstTab) switchLaporanTab('rekap', firstTab);
   }
-  
-  await ensureSchoolsLoaded();
-  await loadPegawai(); // Ensure allPegawaiData is loaded
 
-  const tbody = document.querySelector("#table-laporan-rekap tbody");
-  let html = "";
-  
-  const attendingStaff = getLaporanRekapRows();
-  if (attendingStaff.length === 0) {
-    html = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Belum ada sekolah yang hadir pada jadwal ini.</td></tr>`;
+  renderLaporanRekapMeta();
+
+  // Atur visibilitas panel upload dokumen sesuai peran
+  setupLaporanDokumenUploadVisibility();
+
+  // Render daftar dokumen (0 detik dari database)
+  if (typeof renderDokumenList === 'function') {
+    renderDokumenList(jadwalId);
+  }
+
+  // 1. Tampilkan dari cache seketika (0 detik) jika ada data kehadiran & pegawai
+  let cachedAtt = attendanceData[jadwalId];
+  if (!cachedAtt) {
+    const localAtt = safeReadJsonStorage('sim_mktas_attendance', {});
+    if (localAtt && localAtt[jadwalId]) {
+      attendanceData[jadwalId] = localAtt[jadwalId];
+      cachedAtt = localAtt[jadwalId];
+    }
+  }
+
+  let cachedStaffAll = safeReadJsonStorage('mktas_staff_all', []);
+  if ((!cachedStaffAll || cachedStaffAll.length === 0) && Array.isArray(allPegawaiData) && allPegawaiData.length > 0) {
+    cachedStaffAll = allPegawaiData;
+  }
+
+  if (cachedSchools && cachedSchools.length > 0 && cachedStaffAll.length > 0 && cachedAtt) {
+    renderLaporanRekapTable(cachedStaffAll, cachedAtt);
   } else {
-    attendingStaff.forEach(p => {
-      html += `
+    const tbody = document.querySelector("#table-laporan-rekap tbody");
+    if (tbody) {
+      tbody.innerHTML = `
         <tr>
-          <td><b>${p.nama || p.nama_lengkap || '-'}</b><br><small style="color: var(--text-muted);">NIP: ${p.nip || '-'}</small></td>
-          <td><span style="background: var(--bg-gradient-end); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;">${p.nama_jabatan_tugas || p.jabatan_tugas || p.jabatan || '-'}</span></td>
-          <td>${p.sekolah_nama || '-'}</td>
-          <td style="text-align: center;">
-            <span style="background: #10b981; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;">Hadir</span>
+          <td colspan="4" class="table-loading-cell" style="text-align: center; padding: 25px;">
+            <div class="loader"></div>
+            <div style="margin-top: 8px; font-weight: 500; color: var(--text-muted);">Memuat rekap kehadiran seluruh sekolah...</div>
           </td>
         </tr>
       `;
-    });
+    }
   }
-  tbody.innerHTML = html;
-  renderLaporanRekapMeta();
-  
-  // Render daftar dokumen (dari localStorage, persistent)
-  if (typeof renderDokumenList === 'function') {
-    renderDokumenList(jadwalId);
+
+  // 2. Ambil data global dari server secara paralel (cepat & efisien)
+  try {
+    const [_, attRes, staffRes] = await Promise.all([
+      ensureSchoolsLoaded(),
+      fetchAPI('getAttendance', { jadwal_id: jadwalId, is_laporan: true, all_schools: true }),
+      fetchAPI('getStaff', { is_laporan: true, all_schools: true })
+    ]);
+
+    if (attRes && attRes.status === 'success' && attRes.data) {
+      attendanceData[jadwalId] = Object.assign({}, attRes.data);
+      try { localStorage.setItem('sim_mktas_attendance', JSON.stringify(attendanceData)); } catch(e) {}
+    }
+
+    let staffList = cachedStaffAll;
+    if (staffRes && staffRes.status === 'success' && Array.isArray(staffRes.data) && staffRes.data.length > 0) {
+      staffList = staffRes.data;
+      try { localStorage.setItem('mktas_staff_all', JSON.stringify(staffList)); } catch(e) {}
+    }
+
+    renderLaporanRekapTable(staffList, attendanceData[jadwalId] || {});
+  } catch (err) {
+    console.error('[Laporan] Error loading global attendance:', err);
+    if (cachedStaffAll.length > 0 && attendanceData[jadwalId]) {
+      renderLaporanRekapTable(cachedStaffAll, attendanceData[jadwalId]);
+    }
   }
 }
 
