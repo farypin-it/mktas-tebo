@@ -57,28 +57,47 @@ function renderYearGrid(schedules) {
   }
 }
 
-async function loadJadwal() {
+async function loadJadwal(forceRefresh = false) {
   document.getElementById("loader-tahun").classList.add("hidden");
   showJadwalView("tahun");
 
-  // Stale-While-Revalidate: Tampilkan tahun jadwal seketika dari cache (0 ms)!
-  const localSchedules = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_schedules', []) : [];
-  if (localSchedules && localSchedules.length > 0) {
+  // 1. Stale-While-Revalidate: Tampilkan tahun jadwal seketika dari cache (0 ms)!
+  const localSchedules = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_schedules', []) : JSON.parse(localStorage.getItem('mktas_schedules') || '[]');
+  const cachedVer = localStorage.getItem('mktas_data_version') || '';
+
+  if (Array.isArray(localSchedules) && localSchedules.length > 0 && !forceRefresh) {
     allSchedules = localSchedules;
     renderYearGrid(allSchedules);
   } else {
     document.getElementById("grid-tahun").innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 45px;"><div class="loader"></div><div style="margin-top: 12px; color: var(--text-muted); font-size: 0.9rem;">Memuat daftar tahun jadwal...</div></div>';
   }
 
+  // 2. Cek versi data di latar belakang
   try {
+    const vRes = await fetchAPI('getDataVersion', {});
+    const serverVer = (vRes && vRes.status === 'success' && vRes.version) ? String(vRes.version) : '';
+
+    // Jika versi server cocok dengan cache dan data sudah tampil: SELESAI (0 panggilan spreadsheet)
+    if (serverVer && serverVer === cachedVer && Array.isArray(localSchedules) && localSchedules.length > 0 && !forceRefresh) {
+      document.getElementById("loader-tahun").classList.add("hidden");
+      return;
+    }
+
     const result = await fetchAPI("getSchedules");
 
     if (result.status === "success" && Array.isArray(result.data)) {
       allSchedules = result.data;
+      if (serverVer) localStorage.setItem('mktas_data_version', serverVer);
       try { localStorage.setItem('mktas_schedules', JSON.stringify(allSchedules)); } catch(e) {}
       renderYearGrid(allSchedules);
+      // Jika sedang melihat tabel tahun tertentu, perbarui tabelnya juga
+      if (currentJadwalTahun && document.getElementById("jadwal-view-tabel") && !document.getElementById("jadwal-view-tabel").classList.contains("hidden")) {
+        filterJadwal();
+      }
     }
-  } catch (err) {}
+  } catch (err) {
+    console.error('[loadJadwal]', err);
+  }
   document.getElementById("loader-tahun").classList.add("hidden");
 }
 
@@ -866,11 +885,16 @@ async function deleteSchedule(id) {
     const res = await fetchAPI("deleteSchedule", { id });
     if (res.status === "success") {
       Swal.fire({ icon: 'success', title: 'Dihapus!', text: res.message, timer: 1800, showConfirmButton: false });
+      
+      // Hapus dari allSchedules & cache lokal seketika (0 ms)
+      allSchedules = allSchedules.filter(item => item.id !== id);
+      try { localStorage.setItem('mktas_schedules', JSON.stringify(allSchedules)); } catch (e) {}
+
       // FIX: kembali ke tabel jadwal tahun yang sedang dilihat, bukan ke layar pilih tahun
       if (currentJadwalTahun) {
-        loadJadwalByTahun(currentJadwalTahun);
+        filterJadwal();
       } else {
-        loadJadwal();
+        loadJadwal(true);
       }
     } else {
       Swal.fire("Gagal", res.message, "error");
