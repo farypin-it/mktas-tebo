@@ -500,16 +500,34 @@
 
     async function loadReferensiPublik() {
       const tbody = document.querySelector('#table-publik-referensi tbody');
+      const cached = JSON.parse(localStorage.getItem('mktas_reference_files') || '[]');
+      const cachedVer = localStorage.getItem('mktas_data_version') || '';
+
+      if (Array.isArray(cached) && cached.length > 0) {
+        allReferensi = cached;
+        renderTabel();
+      }
+
       try {
+        const vRes = await fetchAPI('getDataVersion', {});
+        const serverVer = (vRes && vRes.status === 'success' && vRes.version) ? String(vRes.version) : '';
+        if (serverVer && serverVer === cachedVer && Array.isArray(cached) && cached.length > 0) {
+          return;
+        }
+
         const res = await fetchAPI('getReferenceFiles', {});
         if (res.status === 'success' && res.data) {
           allReferensi = res.data;
+          if (serverVer) localStorage.setItem('mktas_data_version', serverVer);
+          try { localStorage.setItem('mktas_reference_files', JSON.stringify(res.data)); } catch(e) {}
           renderTabel();
-        } else {
+        } else if (!cached || cached.length === 0) {
           tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red; padding: 30px;">Gagal memuat file referensi.</td></tr>';
         }
       } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red; padding: 30px;">Terjadi kesalahan saat memuat data.</td></tr>';
+        if (!cached || cached.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red; padding: 30px;">Terjadi kesalahan saat memuat data.</td></tr>';
+        }
       }
     }
 
