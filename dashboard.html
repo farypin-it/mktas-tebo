@@ -902,6 +902,22 @@
               </div>
             </div>
 
+            <div class="glass-panel" style="padding: 18px; border: 1px solid var(--border-color); margin-bottom: 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap;">
+                <div style="max-width: 650px;">
+                  <h4 style="margin: 0 0 6px 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-database" style="color: var(--primary-color);"></i> Inisialisasi &amp; Sinkronisasi Struktur Spreadsheet
+                  </h4>
+                  <p style="margin: 0; color: var(--text-muted); font-size: 0.88rem; line-height: 1.4;">
+                    Otomatis memeriksa dan membuat seluruh 14 tab sheet, melengkapi header kolom terbaru (seperti <code>created_by</code> pada berita), membekukan baris header (freeze row 1), membersihkan sheet kosong bawaan, serta menyiapkan akun Superadmin dan pengaturan awal. Sangat praktis saat berpindah Spreadsheet baru.
+                  </p>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="setupDatabaseSpreadsheet()" id="btn-setup-database" style="padding: 10px 18px; border-radius: 10px; white-space: nowrap;">
+                  <i class="fa-solid fa-wand-magic-sparkles" style="margin-right: 6px;"></i> Setup / Sinkron Database
+                </button>
+              </div>
+            </div>
+
             <div class="glass-panel" style="padding: 18px; border: 1px solid var(--border-color);">
               <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
                 <h4 style="margin: 0;">Riwayat Log</h4>
