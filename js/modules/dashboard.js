@@ -1201,6 +1201,62 @@ async function restoreMktasBackup(payload) {
 }
 window.restoreMktasBackup = restoreMktasBackup;
 
+async function setupDatabaseSpreadsheet() {
+  const btn = document.getElementById('btn-setup-database');
+  const confirm = await Swal.fire({
+    title: 'Inisialisasi Database?',
+    html: `
+      <p style="font-size:0.95rem;color:var(--text);margin-bottom:12px;">
+        Sistem akan memeriksa dan menyinkronkan seluruh <b>14 tabel sheet</b>, memastikan header kolom terbaru (termasuk kolom berita baru), membekukan baris header, dan menyiapkan data awal.
+      </p>
+      <p style="font-size:0.85rem;color:var(--text-muted);margin:0;">
+        <i class="fa-solid fa-circle-info"></i> Data yang sudah ada di sheet tidak akan hilang atau tertimpa.
+      </p>
+    `,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Ya, Jalankan Setup',
+    cancelButtonText: 'Batal',
+    confirmButtonColor: 'var(--primary-color, #6366f1)'
+  });
+  if (!confirm.isConfirmed) return;
+
+  const origHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
+  }
+
+  try {
+    const res = await fetchAPI('setupDatabase', {});
+    if (res && res.status === 'success') {
+      addMktasLogEntry('setup_database', 'success', res.message || 'Setup database spreadsheet berhasil.');
+      Swal.fire({
+        icon: 'success',
+        title: 'Setup Berhasil!',
+        text: res.message || 'Seluruh 14 tabel sheet dan header kolom berhasil disiapkan secara otomatis.',
+        confirmButtonColor: 'var(--primary-color, #6366f1)'
+      });
+    } else {
+      throw new Error(res?.message || 'Gagal menjalankan setup database.');
+    }
+  } catch (err) {
+    addMktasLogEntry('setup_database', 'error', err.message || 'Setup database gagal.');
+    Swal.fire({
+      icon: 'error',
+      title: 'Setup Gagal',
+      text: err.message || 'Terjadi kesalahan saat menyinkronkan database spreadsheet.'
+    });
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+    }
+  }
+}
+window.setupDatabaseSpreadsheet = setupDatabaseSpreadsheet;
+
+
 function applyWarnaSettings(d) {
   if (!d) return;
   try {
