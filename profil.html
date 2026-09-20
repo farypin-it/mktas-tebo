@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Profil Organisasi - Portal MKTAS</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script>
+    (function () {
+      try {
+        var s = JSON.parse(localStorage.getItem('mktas_settings') || '{}');
+        var r = document.documentElement;
+        var p = s.warna_primer || '#6366f1';
+        var h = s.warna_hover || '#4f46e5';
+        var a1 = s.warna_aksen1 || '#10b981';
+        var a2 = s.warna_aksen2 || '#ec4899';
+        r.style.setProperty('--primary-color', p);
+        r.style.setProperty('--primary-hover', h);
+        r.style.setProperty('--accent-color', a1);
+        r.style.setProperty('--secondary-color', a2);
+        r.style.setProperty('--gradient-primary', 'linear-gradient(135deg, ' + p + ' 0%, ' + a2 + ' 100%)');
+        r.style.setProperty('--gradient-hover', 'linear-gradient(135deg, ' + h + ' 0%, ' + a1 + ' 100%)');
+        r.style.setProperty('--gradient-sidebar', 'linear-gradient(180deg, ' + p + ' 0%, ' + a2 + ' 100%)');
+        r.style.setProperty('--gradient-accent', 'linear-gradient(135deg, ' + p + ' 0%, ' + a1 + ' 100%)');
+        r.style.setProperty('--gradient-text', 'linear-gradient(135deg, ' + p + ' 0%, ' + a2 + ' 100%)');
+      } catch (e) { }
+    })();
+  </script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+
+    :root {
+      --text-color: #334155;
+      --text-muted: #64748b;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --border-color: #e2e8f0;
+      --card-radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* Hero Banner */
+    .page-banner {
+      background: var(--gradient-primary, linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%));
+      color: white;
+      padding: 45px 0 35px;
+      text-align: center;
+      margin-bottom: 30px;
+      border-radius: 0 0 24px 24px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+    }
+
+    .page-banner h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: #ffffff;
+    }
+
+    .page-banner p {
+      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.9);
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    /* Main Content */
+    .main-content {
+      padding: 10px 0 70px;
+      flex: 1;
+    }
+
+    /* Profil Tabs Navigation */
+    .profil-tabs-wrap {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 35px;
+      flex-wrap: wrap;
+    }
+
+    .ptab-btn {
+      padding: 12px 24px;
+      border-radius: 9999px;
+      border: 1px solid var(--border-color);
+      background: white;
+      color: var(--text-color);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+      transition: var(--transition);
+    }
+
+    .ptab-btn:hover {
+      border-color: var(--primary-color);
+      color: var(--primary-color);
+      transform: translateY(-2px);
+    }
+
+    .ptab-btn.active {
+      background: var(--gradient-primary, var(--primary-color));
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    }
+
+    /* Content Cards */
+    .profil-card {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      padding: 40px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border-color);
+      display: none;
+      animation: fadeIn 0.4s ease forwards;
+    }
+
+    .profil-card.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .section-title-wrap {
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 18px;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .section-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(37, 99, 235, 0.1);
+      color: var(--primary-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+    }
+
+    .section-title {
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--secondary-color);
+    }
+
+    .rich-text {
+      font-size: 1.02rem;
+      line-height: 1.8;
+      color: #334155;
+      word-break: break-word;
+    }
+
+    .rich-text p {
+      margin-bottom: 1rem;
+    }
+
+    .rich-text p:last-child {
+      margin-bottom: 0;
+    }
+
+    .rich-text ul,
+    .rich-text ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .rich-text h1,
+    .rich-text h2,
+    .rich-text h3,
+    .rich-text h4 {
+      margin-top: 1.25rem;
+      margin-bottom: 0.75rem;
+      color: #1e293b;
+    }
+
+    .rich-text blockquote {
+      border-left: 4px solid var(--primary-color);
+      padding-left: 14px;
+      margin: 14px 0;
+      color: #64748b;
+      font-style: italic;
+    }
+
+    /* Quill content formatting support */
+    .rich-text .ql-align-center { text-align: center; }
+    .rich-text .ql-align-right { text-align: right; }
+    .rich-text .ql-align-justify { text-align: justify; }
+    .rich-text .ql-size-small { font-size: 0.8em; }
+    .rich-text .ql-size-large { font-size: 1.4em; font-weight: 600; }
+    .rich-text .ql-size-huge { font-size: 1.9em; font-weight: 700; }
+    .rich-text sub { vertical-align: sub; font-size: smaller; }
+    .rich-text sup { vertical-align: super; font-size: smaller; }
+    .rich-text s { text-decoration: line-through; }
+    .rich-text code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.9em; }
+    .rich-text pre { background: #0f172a; color: #f8fafc; padding: 14px; border-radius: 8px; overflow-x: auto; font-family: monospace; margin-bottom: 1rem; }
+
+    /* Jabatan Item Pills & Keanggotaan UI */
+    .jabatan-sk-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+
+    .jabatan-item {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 9px 13px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+      transition: all 0.2s ease;
+    }
+
+    .jabatan-item:hover {
+      border-color: var(--primary-color);
+      transform: translateX(3px);
+      color: var(--primary-color);
+      background: #fafcff;
+    }
+
+    .jabatan-item i {
+      color: var(--primary-color);
+      font-size: 0.92rem;
+      width: 18px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    /* Accordion on Keanggotaan tab */
+    .keanggotaan-accordion {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .accordion-item {
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      background: #ffffff;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+    }
+
+    .accordion-trigger {
+      width: 100%;
+      border: none;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(236, 72, 153, 0.04));
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      text-align: left;
+      padding: 16px 18px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .accordion-trigger i:first-child {
+      color: var(--primary-color);
+      width: 18px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .accordion-trigger .chevron {
+      transition: transform 0.2s ease;
+      color: #64748b;
+      font-size: 0.88rem;
+      flex-shrink: 0;
+    }
+
+    .accordion-item.active .accordion-trigger .chevron {
+      transform: rotate(180deg);
+    }
+
+    .accordion-panel {
+      display: none;
+      padding: 0 18px 18px;
+      color: #334155;
+      line-height: 1.7;
+    }
+
+    .accordion-item.active .accordion-panel {
+      display: block;
+    }
+
+    /* Button Open Anggota */
+    .btn-open-anggota {
+      background: var(--gradient-primary, linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%));
+      color: #ffffff;
+      border: none;
+      border-radius: 9999px;
+      padding: 13px 32px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-open-anggota:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(99, 102, 241, 0.45);
+      filter: brightness(1.06);
+    }
+
+    .btn-open-anggota:active {
+      transform: translateY(0);
+    }
+
+    /* Modal Popup Daftar Anggota */
+    .modal-anggota-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-anggota-backdrop.show {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal-anggota-dialog {
+      background: #ffffff;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 1020px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      overflow: hidden;
+      animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes modalSlideUp {
+      from {
+        transform: translateY(20px) scale(0.98);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+    }
+
+    .modal-anggota-header {
+      padding: 18px 24px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .modal-anggota-body {
+      padding: 16px 24px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .modal-anggota-footer {
+      padding: 12px 24px;
+      border-top: 1px solid #e2e8f0;
+      background: #f8fafc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    /* Compact Table Styles */
+    .table-anggota-wrapper {
+      width: 100%;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      overflow: auto;
+      max-height: 56vh;
+      background: #ffffff;
+    }
+
+    .table-anggota {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem; /* Ukuran teks kompak agar muat banyak */
+      text-align: left;
+    }
+
+    .table-anggota thead th {
+      position: sticky;
+      top: 0;
+      background: #f8fafc;
+      color: #475569;
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 9px 12px;
+      border-bottom: 2px solid #cbd5e1;
+      z-index: 5;
+      white-space: nowrap;
+    }
+
+    .table-anggota tbody tr {
+      border-bottom: 1px solid #f1f5f9;
+      transition: background-color 0.15s ease;
+    }
+
+    .table-anggota tbody tr:hover {
+      background-color: #f8fafc;
+    }
+
+    .table-anggota tbody td {
+      padding: 7px 12px;
+      vertical-align: middle;
+      color: #334155;
+      line-height: 1.35;
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    .table-anggota th:nth-child(1),
+    .table-anggota td:nth-child(1) {
+      width: 54px;
+      min-width: 54px;
+      text-align: center;
+    }
+
+    .table-anggota th:nth-child(2),
+    .table-anggota td:nth-child(2) {
+      width: 28%;
+      min-width: 180px;
+    }
+
+    .table-anggota th:nth-child(3),
+    .table-anggota td:nth-child(3) {
+      width: 80px;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .table-anggota th:nth-child(4),
+    .table-anggota td:nth-child(4) {
+      width: 36%;
+      min-width: 220px;
+    }
+
+    .table-anggota th:nth-child(5),
+    .table-anggota td:nth-child(5) {
+      width: 18%;
+      min-width: 130px;
+    }
+
+    /* JK Badges */
+    .badge-jk {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.76rem;
+      text-align: center;
+    }
+
+    .badge-jk-l {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+
+    .badge-jk-p {
+      background: #fdf2f8;
+      color: #be185d;
+      border: 1px solid #fbcfe8;
+    }
+
+    /* Status Badges */
+    .badge-status-pns {
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.74rem;
+      display: inline-block;
+      white-space: nowrap;
+    }
+
+    .badge-status-pppk {
+      background: #eef2ff;
+      color: #4338ca;
+      border: 1px solid #c7d2fe;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.74rem;
+      display: inline-block;
+      white-space: nowrap;
+    }
+
+    .badge-status-honorer {
+      background: #fffbeb;
+      color: #92400e;
+      border: 1px solid #fde68a;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.74rem;
+      display: inline-block;
+      white-space: nowrap;
+    }
+
+    .badge-status-default {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.74rem;
+      display: inline-block;
+      white-space: nowrap;
+    }
+
+    /* School Group Row */
+    .school-cell-badge {
+      font-weight: 600;
+      color: #1e293b;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .school-cell-badge i {
+      color: var(--primary-color);
+      font-size: 0.8rem;
+    }
+
+    .school-divider-row td {
+      background: #f1f5f9;
+      color: #0f172a;
+      font-weight: 800;
+      font-size: 0.78rem;
+      padding: 0;
+      border-top: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+      letter-spacing: 0.3px;
+    }
+
+    .school-toggle-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+      background: transparent;
+      border: none;
+      padding: 10px 12px;
+      color: #0f172a;
+      text-align: left;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 0.78rem;
+    }
+
+    .school-toggle-btn .school-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1 1 auto;
+      min-width: 0;
+      justify-content: flex-start;
+    }
+
+    .school-toggle-btn .school-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: auto;
+      min-width: 26px;
+      height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--primary-color);
+      font-size: 0.72rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .school-toggle-btn .chevron {
+      transition: transform 0.2s ease;
+      color: #64748b;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+      margin-left: 4px;
+    }
+
+    .school-divider-row.open .school-toggle-btn .chevron {
+      transform: rotate(180deg);
+    }
+
+    .school-member-group {
+      display: none;
+    }
+
+    .school-divider-row.open + .school-member-group {
+      display: table-row-group;
+    }
+
+    /* Table Data Organisasi */
+    .table-data-org {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .table-data-org tr {
+      transition: background 0.2s ease;
+    }
+
+    .table-data-org tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    .table-data-org tr:hover {
+      background-color: #f1f5f9;
+    }
+
+    .table-data-org td {
+      padding: 16px 20px;
+      font-size: 0.96rem;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: middle;
+    }
+
+    .table-data-org tr:last-child td {
+      border-bottom: none;
+    }
+
+    .table-data-org td:first-child {
+      font-weight: 600;
+      color: #1e293b;
+      width: 35%;
+      background: rgba(241, 245, 249, 0.5);
+    }
+
+    .table-data-org td:last-child {
+      color: #475569;
+    }
+
+    /* Struktur Organisasi Image */
+    .struktur-img-wrap {
+      text-align: center;
+      background: #f8fafc;
+      padding: 24px;
+      border-radius: 14px;
+      border: 1px dashed #cbd5e1;
+      margin-bottom: 40px;
+    }
+
+    .struktur-img {
+      max-width: 100%;
+      height: auto;
+      max-height: 600px;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .struktur-img:hover {
+      transform: scale(1.01);
+    }
+
+    /* Board Members Grid */
+    .board-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 22px;
+      margin-top: 25px;
+    }
+
+    .board-card {
+      background: white;
+      border-radius: 14px;
+      padding: 24px 18px;
+      text-align: center;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .board-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      border-color: #cbd5e1;
+    }
+
+    .board-img {
+      width: 100%;
+      max-width: 120px;
+      aspect-ratio: 3 / 4;
+      border-radius: 12px;
+      object-fit: cover;
+      margin-bottom: 14px;
+      border: 3px solid #e0e7ff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .board-name {
+      font-weight: 700;
+      font-size: 1rem;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+
+    .board-pos {
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      background: rgba(37, 99, 235, 0.08);
+      padding: 4px 12px;
+      border-radius: 20px;
+      display: inline-block;
+      margin-top: 4px;
+    }
+
+    /* Footer Styling */
+    .public-footer {
+      background: #1f2937 !important;
+      color: #ffffff !important;
+      padding: 45px 0 25px;
+      margin-top: auto;
+      border-top: 1px solid #374151;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1.6fr 1.1fr 1fr;
+      gap: 24px;
+      margin-bottom: 25px;
+      align-items: start;
+    }
+
+    .footer-col:nth-child(3) {
+      text-align: right;
+    }
+
+    .footer-col:nth-child(3) .social-links {
+      justify-content: flex-end;
+    }
+
+    .footer-col h4 {
+      color: #ffffff;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .footer-col p {
+      color: #9ca3af;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .footer-contact-link {
+      color: #cbd5e1;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .footer-contact-link:hover {
+      color: #ffffff !important;
+      text-decoration: underline !important;
+    }
+
+    .social-links a {
+      color: #cbd5e1;
+      font-size: 1.4rem;
+      margin-right: 15px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s ease;
+    }
+
+    .social-links a:hover {
+      color: var(--primary-color, #2563eb);
+      transform: translateY(-2px);
+    }
+
+    /* Scroll to Top */
+    .btn-scroll-top {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--gradient-primary, var(--primary-color));
+      color: #ffffff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+      z-index: 9999;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(20px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-scroll-top.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .btn-scroll-top:hover {
+      background: var(--gradient-hover, var(--primary-hover));
+      transform: translateY(-3px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+
+      .profil-tabs-wrap {
+        display: flex;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        padding-bottom: 8px;
+        -webkit-overflow-scrolling: touch;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+
+      .ptab-btn {
+        padding: 8px 14px;
+        font-size: 0.82rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      
+      .rich-text {
+        font-size: 0.88rem;
+        line-height: 1.6;
+      }
+      
+      .rich-text h1, .rich-text h2, .rich-text h3 {
+        font-size: 1.15rem;
+      }
+
+      .profil-card {
+        padding: 20px 14px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .hero-title {
+        font-size: 1.85rem;
+      }
+
+      .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 25px;
+      }
+
+      .table-data-org {
+        min-width: 320px;
+      }
+
+      .table-data-org td {
+        padding: 12px 14px;
+        font-size: 0.88rem;
+        word-break: break-word;
+      }
+
+      .table-data-org td:first-child {
+        width: 45%;
+      }
+    }
+  </style>
+</head>
+
+<body class="has-bottom-nav" style="display: flex; flex-direction: column; min-height: 100vh;">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+      <a href="index.html" class="brand" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+        <svg id="header-logo-svg" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#2563eb"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+        </svg>
+        <img id="header-logo-img" src="" alt="Logo"
+          style="width: 38px; height: 38px; object-fit: contain; display: none;" />
+        <div
+          style="display: flex; flex-direction: column; justify-content: center; text-align: left; line-height: 1.15;">
+          <div style="font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px;">
+            <span style="color: #f97316;">Portal</span> <span style="color: #2563eb;">MKTAS</span>
+          </div>
+          <small id="header-wilayah"
+            style="font-size: 0.78rem; font-weight: 600; color: #64748b; margin-top: 3px; display: block;"></small>
+        </div>
+      </a>
+      <nav class="nav-links">
+        <a href="index.html">Beranda</a>
+        <a href="berita.html">Berita</a>
+        <a href="index.html#jadwal">Jadwal</a>
+        <a href="profil.html" class="active" style="color: var(--primary-color); font-weight: 600;">Profil</a>
+        <a href="galeri.html">Galeri</a>
+        <a href="referensi.html">File Referensi</a>
+        <a href="#kontak">Kontak</a>
+        <a href="login.html" class="btn btn-primary">Masuk Portal</a>
+      </nav>
+      <!-- Tombol Masuk Portal Khusus Mobile Kanan Atas -->
+      <a href="login.html" class="btn-portal-mobile" title="Masuk Portal">
+        <i class="fa-solid fa-arrow-right-to-bracket"></i>
+        <span>Masuk</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Banner -->
+  <div class="page-banner">
+    <div class="container">
+      <h1 id="profil-hero-title">Profil Organisasi</h1>
+      <p id="profil-hero-desc">Mengenal lebih dekat visi, misi, sejarah, data resmi, dan struktur kepengurusan forum</p>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+
+      <!-- Tab Controls -->
+      <div class="profil-tabs-wrap">
+        <button class="ptab-btn active" onclick="switchTab('pengantar', this)">
+          <i class="fa-solid fa-quote-left"></i> Kata Pengantar
+        </button>
+        <button class="ptab-btn" onclick="switchTab('visimisi', this)">
+          <i class="fa-solid fa-bullseye"></i> Visi & Misi
+        </button>
+        <button class="ptab-btn" onclick="switchTab('sejarah', this)">
+          <i class="fa-solid fa-clock-rotate-left"></i> Sejarah Singkat
+        </button>
+        <button class="ptab-btn" onclick="switchTab('data', this)">
+          <i class="fa-solid fa-file-lines"></i> Data & Legalitas
+        </button>
+        <button class="ptab-btn" onclick="switchTab('keanggotaan', this)">
+          <i class="fa-solid fa-id-card-clip"></i> Keanggotaan
+        </button>
+        <button class="ptab-btn" onclick="switchTab('struktur', this)">
+          <i class="fa-solid fa-sitemap"></i> Struktur & Pengurus
+        </button>
+      </div>
+
+      <!-- Tab 1: Pengantar -->
+      <div id="tab-pengantar" class="profil-card active">
+        <div class="section-title-wrap">
+          <div class="section-icon"><i class="fa-solid fa-quote-left"></i></div>
+          <div>
+            <h2 class="section-title">Kata Pengantar</h2>
+            <small style="color:var(--text-muted);">Sambutan resmi pimpinan forum dan pengantar organisasi</small>
+          </div>
+        </div>
+        <div id="content-pengantar" class="rich-text">Memuat kata pengantar...</div>
+      </div>
+
+      <!-- Tab 2: Visi & Misi -->
+      <div id="tab-visimisi" class="profil-card">
+        <div class="section-title-wrap">
+          <div class="section-icon"><i class="fa-solid fa-bullseye"></i></div>
+          <div>
+            <h2 class="section-title">Visi & Misi Organisasi</h2>
+            <small style="color:var(--text-muted);">Arah tujuan, pandangan masa depan, dan misi pengabdian forum</small>
+          </div>
+        </div>
+        <div id="content-visimisi" class="rich-text">Memuat visi dan misi...</div>
+      </div>
+
+      <!-- Tab 3: Sejarah -->
+      <div id="tab-sejarah" class="profil-card">
+        <div class="section-title-wrap">
+          <div class="section-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+          <div>
+            <h2 class="section-title">Sejarah Berdirinya Forum</h2>
+            <small style="color:var(--text-muted);">Kilasan perjalanan dan latar belakang pembentukan forum</small>
+          </div>
+        </div>
+        <div id="content-sejarah" class="rich-text">Memuat sejarah organisasi...</div>
+      </div>
+
+      <!-- Tab 3: Data & Legalitas -->
+      <div id="tab-data" class="profil-card">
+        <div class="section-title-wrap">
+          <div class="section-icon"><i class="fa-solid fa-file-lines"></i></div>
+          <div>
+            <h2 class="section-title">Data Organisasi & Legalitas</h2>
+            <small style="color:var(--text-muted);">Informasi administrasi, kontak resmi, dan dasar hukum forum</small>
+          </div>
+        </div>
+        <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+          <table class="table-data-org">
+            <tbody id="tbody-data-org">
+              <tr>
+                <td colspan="2" class="text-center" style="padding:20px;color:#64748b;">Memuat data organisasi...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 5: Keanggotaan -->
+      <div id="tab-keanggotaan" class="profil-card">
+        <div class="section-title-wrap">
+          <div class="section-icon"><i class="fa-solid fa-id-card-clip"></i></div>
+          <div>
+            <h2 class="section-title">Ketentuan & Keanggotaan MKTAS</h2>
+            <small style="color:var(--text-muted);">Informasi keanggotaan dan klasifikasi pemangku jabatan Tenaga Administrasi Sekolah</small>
+          </div>
+        </div>
+
+        <div class="keanggotaan-content" style="line-height: 1.8; color: #334155;">
+          <div class="keanggotaan-accordion">
+            <div class="accordion-item active">
+              <button class="accordion-trigger" type="button" aria-expanded="true">
+                <span><i class="fa-solid fa-circle-check"></i> Ketentuan Keanggotaan</span>
+                <i class="fa-solid fa-chevron-down chevron"></i>
+              </button>
+              <div class="accordion-panel">
+                <div style="background: linear-gradient(to right, rgba(99, 102, 241, 0.08), rgba(236, 72, 153, 0.04)); border-left: 4px solid var(--primary-color); padding: 18px 20px; border-radius: 0 14px 14px 0; margin-top: 14px;">
+                  <p style="margin: 0; font-size: 0.98rem; color: #334155;">
+                    Anggota <strong>Musyawarah Kerja Tenaga Administrasi Sekolah (MKTAS) Kabupaten Tebo</strong> adalah seluruh pegawai <strong>Tenaga Administrasi Sekolah (TAS)</strong> dan <strong>Tenaga Kependidikan (Tendik)</strong> pada jenjang <strong>SMA, SMK, dan SLB</strong> (Negeri maupun Swasta) di lingkungan Kabupaten Tebo yang memangku jabatan resmi sesuai dengan <strong>Daftar Jabatan SK</strong> yang diterbitkan oleh pejabat yang berwenang maupun kepala satuan pendidikan.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <button class="accordion-trigger" type="button" aria-expanded="false">
+                <span><i class="fa-solid fa-list-check"></i> Daftar Jabatan SK</span>
+                <i class="fa-solid fa-chevron-down chevron"></i>
+              </button>
+              <div class="accordion-panel">
+                <p style="font-size: 0.95rem; color: #64748b; margin: 14px 0 16px;">
+                  Segenap aparatur dan pegawai pelaksana teknis administrasi sekolah yang menduduki jabatan-jabatan SK di bawah ini secara otomatis terdaftar sebagai anggota forum:
+                </p>
+
+                <div class="jabatan-sk-grid">
+                  <div class="jabatan-item"><i class="fa-solid fa-user-tie"></i> Kepala Sub Bagian Tata Usaha</div>
+                  <div class="jabatan-item"><i class="fa-solid fa-user-tie"></i> Kepala Tata Usaha (KTU)</div>
+                  <div class="jabatan-item"><i class="fa-solid fa-briefcase"></i> Penata Layanan Operasional</div>
+                  <div class="jabatan-item"><i class="fa-solid fa-briefcase"></i> Pengelola Layanan Operasional</div>
+                  <div class="jabatan-item"><i class="fa-solid fa-laptop-code"></i> Operator Layanan Operasional</div>
+                  <div class="jabatan-item"><i class="fa-solid fa-folder-tree"></i> Pengadministrasi Umum</div>
+                  <div class="jabatan-item"><i class="fa-solid fa-id-badge"></i> Pengadministrasi Kepegawaian</div>
+                  <div class="jabatan-item"><i class="fa-solid fa-money-check-dollar"></i> Pengadministrasi Keuangan (Bendahara)</div>
+                  <div class="jabatan-item"><i class="fa-solid fa-envelope-open-text"></i> Pengadministrasi Persuratan & Kearsipan</div>
+                  <div class="jabatan-item"><i class="fa-solid fa-graduation-cap"></i> Pengadministrasi Kesiswaan</div>
+                  <div class="jabatan-item"><i class="fa-solid fa-boxes-stacked"></i> Pengadministrasi Sarana & Prasarana</div>
+                  <div class="jabatan-item"><i class="fa-solid fa-book-open"></i> Pengadministrasi Kurikulum</div>
+                  <div class="jabatan-item"><i class="fa-solid fa-book-bookmark"></i> Pengelola Perpustakaan / Pustakawan</div>
+                  <div class="jabatan-item"><i class="fa-solid fa-flask-vial"></i> Pengelola Laboratorium / Laboran</div>
+                  <div class="jabatan-item"><i class="fa-solid fa-server"></i> Pranata Komputer / Operator Dapodik & SIM</div>
+                  <div class="jabatan-item"><i class="fa-solid fa-users-viewfinder"></i> Analis SDM Aparatur</div>
+                  <div class="jabatan-item"><i class="fa-solid fa-box-archive"></i> Arsiparis</div>
+                  <div class="jabatan-item"><i class="fa-solid fa-shield-halved"></i> Satuan Pengamanan (Satpam)</div>
+                  <div class="jabatan-item"><i class="fa-solid fa-key"></i> Penjaga Sekolah</div>
+                  <div class="jabatan-item"><i class="fa-solid fa-broom"></i> Tenaga Kebersihan</div>
+                  <div class="jabatan-item"><i class="fa-solid fa-car"></i> Pengemudi</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <button class="accordion-trigger" type="button" aria-expanded="false">
+                <span><i class="fa-solid fa-circle-info"></i> Cakupan Status Kepegawaian</span>
+                <i class="fa-solid fa-chevron-down chevron"></i>
+              </button>
+              <div class="accordion-panel">
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 22px; margin-top: 14px;">
+                  <div style="display: flex; gap: 14px; align-items: flex-start;">
+                    <div style="color: #f59e0b; font-size: 1.4rem; line-height: 1; margin-top: 3px;"><i class="fa-solid fa-circle-info"></i></div>
+                    <div style="font-size: 0.92rem; color: #475569;">
+                      <strong style="color: #1e293b;">Cakupan Status Kepegawaian:</strong><br>
+                      Keanggotaan MKTAS Tebo merangkul seluruh status kepegawaian tanpa diskriminasi, baik aparatur <strong>PNS</strong> (Pegawai Negeri Sipil), <strong>PPPK</strong> (Pegawai Pemerintah dengan Perjanjian Kerja), maupun tenaga <strong>Honorer / PTT / Non-ASN</strong> yang bertugas aktif di satuan pendidikan sekolah wilayah Kabupaten Tebo.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.07), rgba(236, 72, 153, 0.07)); border: 2px dashed rgba(99, 102, 241, 0.4); border-radius: 18px; padding: 35px 24px; text-align: center;">
+            <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--gradient-primary, #6366f1); color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-bottom: 14px; box-shadow: 0 10px 22px rgba(99, 102, 241, 0.35);">
+              <i class="fa-solid fa-address-book"></i>
+            </div>
+            <h4 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin-bottom: 8px;">Direktori Daftar Anggota MKTAS</h4>
+            <p style="color: #64748b; font-size: 0.95rem; max-width: 620px; margin: 0 auto 22px; line-height: 1.6;">
+              Buka direktori lengkap seluruh anggota Tenaga Administrasi Sekolah di Kabupaten Tebo, tersusun berurutan per sekolah dan dilengkapi informasi status kepegawaian.
+            </p>
+            <button type="button" class="btn-open-anggota" onclick="openModalDaftarAnggota()">
+              <i class="fa-solid fa-users"></i>
+              <span>Daftar Anggota</span>
+              <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.85rem; opacity: 0.85;"></i>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Tab 4: Struktur & Pengurus -->
+      <div id="tab-struktur" class="profil-card">
+        <div class="section-title-wrap">
+          <div class="section-icon"><i class="fa-solid fa-sitemap"></i></div>
+          <div>
+            <h2 class="section-title">Struktur Organisasi</h2>
+            <small style="color:var(--text-muted);">Bagan struktur kepengurusan dan jajaran pengurus forum</small>
+          </div>
+        </div>
+
+        <!-- Bagan Gambar Struktur -->
+        <div class="struktur-img-wrap">
+          <h4 style="margin-bottom:12px;color:#1e293b;font-weight:700;"><i class="fa-regular fa-image"
+              style="color:var(--primary-color);"></i> Bagan Struktur Kepengurusan</h4>
+          <img id="img-struktur-organisasi" class="struktur-img" src="" alt="Bagan Struktur Organisasi"
+            onclick="window.open(this.src, '_blank')" style="display:none;" />
+          <p id="msg-no-struktur" style="color:var(--text-muted);font-size:0.95rem;padding:20px 0;">
+            Bagan struktur organisasi belum diunggah.
+          </p>
+        </div>
+
+        <!-- Daftar Pengurus / Board Members -->
+        <div style="margin-top:40px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:15px;">
+            <i class="fa-solid fa-users" style="color:var(--primary-color);font-size:1.3rem;"></i>
+            <h3 style="font-size:1.25rem;font-weight:700;color:#0f172a;">Jajaran Dewan Pembina & Pengurus</h3>
+          </div>
+          <div id="board-container" class="board-grid">
+            <p style="color:var(--text-muted);grid-column:1/-1;">Memuat data pengurus...</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- MODAL DAFTAR ANGGOTA (Scrollable & Compact Table) -->
+  <div id="modal-daftar-anggota" class="modal-anggota-backdrop" onclick="if(event.target===this) closeModalDaftarAnggota()">
+    <div class="modal-anggota-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-anggota-title">
+      <div class="modal-anggota-header">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--gradient-primary, #6366f1); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);">
+            <i class="fa-solid fa-users"></i>
+          </div>
+          <div>
+            <h3 id="modal-anggota-title" style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0;">Daftar Anggota MKTAS</h3>
+            <small style="color: #64748b; font-size: 0.8rem;">Data Tenaga Administrasi Sekolah se-Kabupaten Tebo berurutan per sekolah</small>
+          </div>
+        </div>
+        <button type="button" onclick="closeModalDaftarAnggota()" style="background: none; border: none; color: #64748b; font-size: 1.7rem; cursor: pointer; padding: 0 8px; line-height: 1; border-radius: 6px;" title="Tutup">&times;</button>
+      </div>
+
+      <div class="modal-anggota-body">
+        <!-- Toolbar Pencarian & Info Total -->
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: space-between;">
+          <div style="position: relative; flex: 1; min-width: 250px;">
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
+            <input type="text" id="search-anggota" placeholder="Cari nama anggota, sekolah, atau status..." oninput="filterTableAnggota()" style="width: 100%; padding: 8px 12px 8px 34px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.85rem; outline: none; background: #f8fafc;">
+          </div>
+          <div>
+            <span id="badge-total-anggota" style="font-size: 0.82rem; font-weight: 700; color: var(--primary-color); background: rgba(99, 102, 241, 0.1); padding: 5px 12px; border-radius: 20px; display: inline-block;">
+              Memuat data...
+            </span>
+          </div>
+        </div>
+
+        <!-- Tabel Kontainer Scrollable -->
+        <div class="table-anggota-wrapper">
+          <table class="table-anggota" id="table-anggota-mktas">
+            <thead>
+              <tr>
+                <th style="width: 45px; text-align: center;">No</th>
+                <th>Nama Lengkap / NIP</th>
+                <th style="width: 70px; text-align: center;">JK (L/P)</th>
+                <th>Jabatan / Sekolah</th>
+                <th style="width: 125px;">Status Pegawai</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-daftar-anggota">
+              <tr>
+                <td colspan="5" style="text-align: center; padding: 30px; color: #94a3b8;">
+                  <i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Memuat data anggota...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal-anggota-footer">
+        <div style="font-size: 0.78rem; color: #64748b;">
+          <i class="fa-solid fa-circle-info" style="color: var(--primary-color); margin-right: 4px;"></i>
+          Data diurutkan berurutan per sekolah (seluruh pegawai pada sekolah yang sama dikelompokkan).
+        </div>
+        <button type="button" class="btn btn-outline" onclick="closeModalDaftarAnggota()" style="padding: 6px 18px; font-size: 0.85rem; cursor: pointer;">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER TERPUSAT (js/footer.js) -->
+  <footer class="public-footer" id="kontak"></footer>
+
+  <!-- Scroll to Top Button -->
+  <button id="btn-scroll-top" class="btn-scroll-top" title="Kembali ke Atas" onclick="scrollToTop()">
+    <i class="fa-solid fa-arrow-up"></i>
+  </button>
+
+  <script src="js/api.js"></script>
+  <script src="js/footer.js"></script>
+  <script>
+    // Tab switching
+    function switchTab(tabName, btn) {
+      document.querySelectorAll('.ptab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.profil-card').forEach(c => c.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      const target = document.getElementById('tab-' + tabName);
+      if (target) target.classList.add('active');
+    }
+
+    // Scroll to Top
+    window.addEventListener('scroll', function () {
+      const btn = document.getElementById('btn-scroll-top');
+      if (btn) {
+        if (window.scrollY > 300) btn.classList.add('show');
+        else btn.classList.remove('show');
+      }
+    });
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Load Data
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Settings
+      let s = JSON.parse(localStorage.getItem('mktas_settings') || '{}');
+      try {
+        if (typeof fetchAPI !== 'undefined') {
+          const res = await fetchAPI('getSettings', {});
+          if (res && res.status === 'success' && res.data) {
+            s = typeof mergeSettings === 'function' ? mergeSettings(s, res.data) : Object.assign(s, res.data);
+          }
+        }
+      } catch (e) {
+        console.warn('Gagal memuat settings online:', e);
+      }
+
+      if (typeof applyWarnaSettings === 'function') {
+        applyWarnaSettings(s);
+      }
+
+      if (s.wilayah) {
+        const hw = document.getElementById('header-wilayah');
+        if (hw) hw.textContent = s.wilayah;
+        const fr = document.getElementById('footer-region');
+        if (fr) fr.textContent = s.wilayah;
+      }
+
+      // Hero
+      if (s.nama_forum) {
+        document.getElementById('profil-hero-title').textContent = 'Profil ' + s.nama_forum;
+        document.title = 'Profil ' + s.nama_forum + ' - Portal MKTAS';
+      }
+
+      // Content Pengantar, Visi Misi & Sejarah
+      const elPengantar = document.getElementById('content-pengantar');
+      if (elPengantar) {
+        elPengantar.innerHTML = s.profil_pengantar || '<p>Belum ada kata pengantar yang ditambahkan.</p>';
+      }
+
+      const elVisiMisi = document.getElementById('content-visimisi');
+      if (elVisiMisi) {
+        elVisiMisi.innerHTML = s.profil_visimisi || '<p>Belum ada informasi visi dan misi yang ditambahkan.</p>';
+      }
+
+      const elSejarah = document.getElementById('content-sejarah');
+      if (elSejarah) {
+        elSejarah.innerHTML = s.profil_sejarah || '<p>Belum ada informasi sejarah yang ditambahkan.</p>';
+      }
+
+      // Struktur Organisasi Image
+      const imgStruktur = document.getElementById('img-struktur-organisasi');
+      const msgStruktur = document.getElementById('msg-no-struktur');
+      if (s.profil_struktur) {
+        imgStruktur.src = s.profil_struktur;
+        imgStruktur.style.display = 'inline-block';
+        if (msgStruktur) msgStruktur.style.display = 'none';
+      }
+
+      // Table Data Organisasi
+      const tbody = document.getElementById('tbody-data-org');
+      let rowsHtml = '';
+
+      // Standar data dari setting
+      if (s.nama_forum) rowsHtml += `<tr><td>Nama Forum</td><td><strong>${s.nama_forum}</strong></td></tr>`;
+      if (s.singkatan_forum) rowsHtml += `<tr><td>Singkatan</td><td>${s.singkatan_forum}</td></tr>`;
+      if (s.wilayah) rowsHtml += `<tr><td>Wilayah Kerja</td><td>${s.wilayah}</td></tr>`;
+      if (s.alamat) rowsHtml += `<tr><td>Alamat Sekretariat</td><td>${s.alamat}</td></tr>`;
+      if (s.telp) rowsHtml += `<tr><td>Telepon / WhatsApp</td><td>${s.telp}</td></tr>`;
+      if (s.email) rowsHtml += `<tr><td>Email Resmi</td><td>${s.email}</td></tr>`;
+      if (s.website) rowsHtml += `<tr><td>Situs Web</td><td><a href="${s.website.startsWith('http') ? s.website : 'https://' + s.website}" target="_blank" style="color:var(--primary-color);">${s.website}</a></td></tr>`;
+
+      // Data Legalitas & Badan Hukum Forum
+      if (s.legalitas_sk_kemenkumham) rowsHtml += `<tr><td>SK Kemenkumham RI</td><td><strong style="color:var(--primary-color); background: rgba(99, 102, 241, 0.1); padding: 3px 8px; border-radius: 6px; font-family: monospace; font-size: 0.9rem;">${s.legalitas_sk_kemenkumham}</strong></td></tr>`;
+      if (s.legalitas_akta_notaris) rowsHtml += `<tr><td>Akta Notaris / Pendirian</td><td>${s.legalitas_akta_notaris}</td></tr>`;
+      if (s.legalitas_nama_notaris) rowsHtml += `<tr><td>Nama Notaris</td><td>${s.legalitas_nama_notaris}</td></tr>`;
+      if (s.legalitas_tanggal_pendirian) rowsHtml += `<tr><td>Tanggal Pendirian</td><td>${s.legalitas_tanggal_pendirian}</td></tr>`;
+      if (s.legalitas_npwp) rowsHtml += `<tr><td>NPWP Organisasi</td><td><span style="font-family: monospace; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-weight: 600;">${s.legalitas_npwp}</span></td></tr>`;
+      if (s.legalitas_sk_dinas) rowsHtml += `<tr><td>SK Rekomendasi / Dinas</td><td>${s.legalitas_sk_dinas}</td></tr>`;
+      if (s.legalitas_status_lembaga) rowsHtml += `<tr><td>Status Kelembagaan</td><td><span style="background: #ecfdf5; color: #065f46; font-weight: 600; padding: 3px 10px; border-radius: 20px; font-size: 0.85rem;">${s.legalitas_status_lembaga}</span></td></tr>`;
+      if (s.legalitas_keterangan) rowsHtml += `<tr><td>Landasan Hukum & Keterangan</td><td>${s.legalitas_keterangan}</td></tr>`;
+
+      // Custom key=value dari profil_data
+      if (s.profil_data) {
+        const lines = s.profil_data.split('\n');
+        lines.forEach(l => {
+          const parts = l.split('=');
+          if (parts.length >= 2) {
+            const key = parts.shift().trim();
+            const val = parts.join('=').trim();
+            if (key && val) {
+              rowsHtml += `<tr><td>${key}</td><td>${val}</td></tr>`;
+            }
+          }
+        });
+      }
+
+      if (rowsHtml) {
+        tbody.innerHTML = rowsHtml;
+      } else {
+        tbody.innerHTML = '<tr><td colspan="2" class="text-center" style="padding:20px;color:#64748b;">Belum ada data organisasi.</td></tr>';
+      }
+
+      // Populate Footer
+      if (s.nama_forum) document.getElementById('footer-forum-name').textContent = s.nama_forum;
+      if (s.singkatan_forum) document.getElementById('footer-copyright-name').textContent = s.singkatan_forum;
+      if (s.alamat) document.getElementById('footer-address').textContent = s.alamat;
+      if (s.telp) {
+        document.getElementById('footer-phone').textContent = s.telp;
+        let cleanTelp = String(s.telp).replace(/[^0-9]/g, '');
+        if (cleanTelp.startsWith('0')) cleanTelp = '62' + cleanTelp.substring(1);
+        const pl = document.getElementById('footer-phone-link');
+        if (pl) pl.href = 'https://wa.me/' + cleanTelp;
+      }
+      if (s.email) {
+        document.getElementById('footer-email').textContent = s.email;
+        const el = document.getElementById('footer-email-link');
+        if (el) el.href = 'mailto:' + s.email;
+      }
+      if (s.website) {
+        const webUrl = s.website.startsWith('http') ? s.website : 'https://' + s.website;
+        const webEl = document.getElementById('footer-website');
+        if (webEl) {
+          webEl.textContent = s.website.replace(/^https?:\/\//, '');
+          webEl.href = webUrl;
+        }
+      }
+
+      // 2. Load Board (Pengurus)
+      try {
+        const boardRes = await fetchAPI('getBoardMembers', {});
+        const bContainer = document.getElementById('board-container');
+        if (boardRes && boardRes.status === 'success' && boardRes.data && boardRes.data.length > 0) {
+          bContainer.innerHTML = boardRes.data.map(b => `
+            <div class="board-card">
+              <img src="${b.image_url || 'https://via.placeholder.com/96?text=Foto'}" class="board-img" alt="${b.name}">
+              <div class="board-name">${b.name}</div>
+              <div class="board-pos">${b.position}</div>
+            </div>
+          `).join('');
+        } else {
+          bContainer.innerHTML = '<p style="color:var(--text-muted);grid-column:1/-1;">Data jajaran pengurus belum tersedia.</p>';
+        }
+      } catch (err) {
+        console.warn('Gagal memuat board pengurus:', err);
+      }
+
+      // 3. Load Socials
+      try {
+        const socRes = await fetchAPI('getSocials', {});
+        const socContainer = document.getElementById('social-container');
+        if (socRes && socRes.status === 'success' && socRes.data && socRes.data.length > 0) {
+          socContainer.innerHTML = socRes.data.map(sc => `
+            <a href="${sc.url}" target="_blank" title="${sc.platform}"><i class="${sc.icon || 'fa-solid fa-link'}"></i></a>
+          `).join('');
+        }
+      } catch (err) {
+        console.warn('Gagal memuat socials:', err);
+      }
+    });
+
+    // --- MODAL & TABEL DAFTAR ANGGOTA MKTAS ---
+    let _allAnggotaList = [];
+    let _isAnggotaLoaded = false;
+
+    async function openModalDaftarAnggota() {
+      const modal = document.getElementById('modal-daftar-anggota');
+      if (modal) {
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+      }
+      if (!_isAnggotaLoaded) {
+        await loadDaftarAnggota();
+      }
+    }
+
+    function closeModalDaftarAnggota() {
+      const modal = document.getElementById('modal-daftar-anggota');
+      if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+      }
+    }
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeModalDaftarAnggota();
+      }
+    });
+
+    document.addEventListener('click', (event) => {
+      const trigger = event.target.closest('.accordion-trigger');
+      if (!trigger) return;
+      const item = trigger.closest('.accordion-item');
+      if (!item) return;
+      const isOpen = item.classList.contains('active');
+      item.classList.toggle('active', !isOpen);
+      trigger.setAttribute('aria-expanded', String(!isOpen));
+    });
+
+    async function loadDaftarAnggota() {
+      const tbody = document.getElementById('tbody-daftar-anggota');
+      const badgeTotal = document.getElementById('badge-total-anggota');
+      try {
+        if (tbody) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" style="text-align:center;padding:35px;color:#64748b;">
+                <i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;font-size:1.1rem;color:var(--primary-color);"></i> Memuat data seluruh anggota...
+              </td>
+            </tr>
+          `;
+        }
+
+        // Fetch staff and schools in parallel
+        const [stfRes, schRes] = await Promise.all([
+          fetchAPI('getStaff', {}),
+          fetchAPI('getSchools', {})
+        ]);
+
+        const schoolMap = {};
+        if (schRes && schRes.status === 'success' && Array.isArray(schRes.data)) {
+          schRes.data.forEach(sc => {
+            if (sc && sc.id) schoolMap[sc.id] = sc.nama || '-';
+          });
+        }
+
+        let rawList = [];
+        if (stfRes && stfRes.status === 'success' && Array.isArray(stfRes.data)) {
+          rawList = stfRes.data;
+        }
+
+        // Standardize list item
+        _allAnggotaList = rawList.map(item => {
+          const schName = (item.sekolah_nama || schoolMap[item.school_id] || '-').trim();
+          const nama = (item.nama_lengkap || item.nama || '-').trim();
+          
+          let jk = (item.jenis_kelamin || '').trim().toUpperCase();
+          if (jk.startsWith('L') || jk === 'LAKI-LAKI') jk = 'L';
+          else if (jk.startsWith('P') || jk === 'PEREMPUAN') jk = 'P';
+          else jk = '-';
+
+          const status = (item.status_pegawai || '-').trim();
+          return {
+            ...item,
+            clean_nama: nama,
+            clean_sekolah: schName,
+            clean_jk: jk,
+            clean_status: status
+          };
+        });
+
+        // SORTING:
+        // 1. Berurutan berdasarkan nama sekolah secara alfabetis (semua pegawai pada sekolah yang sama berkumpul)
+        // 2. Berurutan berdasarkan nama pegawai di sekolah tersebut
+        _allAnggotaList.sort((a, b) => {
+          const compSch = a.clean_sekolah.localeCompare(b.clean_sekolah, 'id', { numeric: true, sensitivity: 'base' });
+          if (compSch !== 0) return compSch;
+          return a.clean_nama.localeCompare(b.clean_nama, 'id', { sensitivity: 'base' });
+        });
+
+        _isAnggotaLoaded = true;
+        renderTableAnggota(_allAnggotaList);
+
+      } catch (err) {
+        console.error('Error loadDaftarAnggota:', err);
+        if (tbody) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:#ef4444;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;"></i> Gagal memuat data anggota. Silakan periksa koneksi.</td></tr>`;
+        }
+        if (badgeTotal) badgeTotal.textContent = 'Gagal memuat';
+      }
+    }
+
+    function renderTableAnggota(list) {
+      const tbody = document.getElementById('tbody-daftar-anggota');
+      const badgeTotal = document.getElementById('badge-total-anggota');
+      if (!tbody) return;
+
+      if (badgeTotal) {
+        badgeTotal.textContent = `Total: ${list.length} Anggota`;
+      }
+
+      if (!list || list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:35px;color:#94a3b8;">Tidak ada data anggota yang cocok dengan pencarian.</td></tr>`;
+        return;
+      }
+
+      const grouped = {};
+      list.forEach(item => {
+        const schoolKey = item.clean_sekolah || 'Sekolah Tidak Diketahui';
+        if (!grouped[schoolKey]) grouped[schoolKey] = [];
+        grouped[schoolKey].push(item);
+      });
+
+      const schoolEntries = Object.entries(grouped);
+      window.__anggotaSchoolExpanded = window.__anggotaSchoolExpanded || {};
+      schoolEntries.forEach(([school]) => {
+        if (!(school in window.__anggotaSchoolExpanded)) {
+          window.__anggotaSchoolExpanded[school] = true;
+        }
+      });
+
+      let html = '';
+
+      schoolEntries.forEach(([school, members]) => {
+        const isOpen = Boolean(window.__anggotaSchoolExpanded[school]);
+        html += `
+          <tr class="school-divider-row ${isOpen ? 'open' : ''}" data-school="${school.replace(/"/g, '&quot;')}">
+            <td colspan="5">
+              <button type="button" class="school-toggle-btn" data-school="${school.replace(/"/g, '&quot;')}" aria-expanded="${isOpen}">
+                <i class="fa-solid fa-chevron-down chevron"></i>
+                <span class="school-meta">
+                  <i class="fa-solid fa-school" style="color:var(--primary-color);"></i>
+                  <span>${school}</span>
+                </span>
+                <span class="school-count">${members.length}</span>
+              </button>
+            </td>
+          </tr>
+        `;
+
+        members.forEach((item, idx) => {
+          let jkBadge = `<span style="color:#94a3b8;">-</span>`;
+          if (item.clean_jk === 'L') {
+            jkBadge = `<span class="badge-jk badge-jk-l" title="Laki-laki">L</span>`;
+          } else if (item.clean_jk === 'P') {
+            jkBadge = `<span class="badge-jk badge-jk-p" title="Perempuan">P</span>`;
+          }
+
+          let statusBadge = '';
+          const stUpper = String(item.clean_status || '').toUpperCase();
+          if (stUpper.includes('PNS')) {
+            statusBadge = `<span class="badge-status-pns">${item.clean_status}</span>`;
+          } else if (stUpper.includes('PPPK')) {
+            statusBadge = `<span class="badge-status-pppk">${item.clean_status}</span>`;
+          } else if (stUpper.includes('HONOR') || stUpper.includes('PTT') || stUpper.includes('GTT')) {
+            statusBadge = `<span class="badge-status-honorer">${item.clean_status}</span>`;
+          } else {
+            statusBadge = `<span class="badge-status-default">${item.clean_status}</span>`;
+          }
+
+          html += `
+            <tr class="school-member-row" data-school="${school.replace(/"/g, '&quot;')}" style="${isOpen ? '' : 'display:none;'}">
+              <td style="text-align: center; color: #94a3b8; font-weight: 600;">${idx + 1}</td>
+              <td>
+                <strong style="color:#0f172a;">${item.clean_nama}</strong>
+                ${item.nip && item.nip !== '-' ? `<br><small style="color:#64748b;font-size:0.75rem;">NIP. ${item.nip}</small>` : ''}
+              </td>
+              <td style="text-align: center;">${jkBadge}</td>
+              <td>
+                <div style="font-size:0.8rem;color:#334155;line-height:1.35;">${item.jabatan_sk || item.nama_jabatan_sk || item.jabatan_tugas || item.nama_jabatan_tugas || '-'}</div>
+                <div style="font-size:0.75rem;color:#64748b;line-height:1.35;"><i class="fa-solid fa-building-columns" style="color:var(--primary-color);margin-right:3px;"></i>${school}</div>
+              </td>
+              <td>${statusBadge}</td>
+            </tr>
+          `;
+        });
+      });
+
+      tbody.innerHTML = html;
+
+      tbody.querySelectorAll('.school-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const school = btn.dataset.school;
+          window.__anggotaSchoolExpanded = window.__anggotaSchoolExpanded || {};
+          window.__anggotaSchoolExpanded[school] = !window.__anggotaSchoolExpanded[school];
+
+          const row = btn.closest('.school-divider-row');
+          if (row) {
+            row.classList.toggle('open', window.__anggotaSchoolExpanded[school]);
+            btn.setAttribute('aria-expanded', String(window.__anggotaSchoolExpanded[school]));
+          }
+
+          tbody.querySelectorAll(`.school-member-row[data-school="${school}"]`).forEach(memberRow => {
+            memberRow.style.display = window.__anggotaSchoolExpanded[school] ? '' : 'none';
+          });
+        });
+      });
+    }
+
+    function filterTableAnggota() {
+      const q = (document.getElementById('search-anggota')?.value || '').trim().toLowerCase();
+      if (!q) {
+        renderTableAnggota(_allAnggotaList);
+        return;
+      }
+      const filtered = _allAnggotaList.filter(item => {
+        return (item.clean_nama && item.clean_nama.toLowerCase().includes(q)) ||
+               (item.clean_sekolah && item.clean_sekolah.toLowerCase().includes(q)) ||
+               (item.clean_status && item.clean_status.toLowerCase().includes(q)) ||
+               (item.nip && String(item.nip).toLowerCase().includes(q)) ||
+               (item.jabatan_sk && item.jabatan_sk.toLowerCase().includes(q)) ||
+               (item.nama_jabatan_sk && item.nama_jabatan_sk.toLowerCase().includes(q));
+      });
+      renderTableAnggota(filtered);
+    }
+  </script>
+
+  <!-- Native Mobile Bottom Navigation (7 Menu Compact) -->
+  <nav class="bottom-nav-mobile" aria-label="Navigasi Bawah">
+    <a href="profil.html" class="bnav-item active">
+      <div class="bnav-icon"><i class="fa-solid fa-id-badge"></i></div>
+      <span class="bnav-label">Profil</span>
+    </a>
+    <a href="berita.html" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-regular fa-newspaper"></i></div>
+      <span class="bnav-label">Berita</span>
+    </a>
+    <a href="index.html#jadwal" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-regular fa-calendar-days"></i></div>
+      <span class="bnav-label">Jadwal</span>
+    </a>
+    <a href="index.html" class="bnav-item bnav-center">
+      <div class="bnav-center-circle">
+        <i class="fa-solid fa-house"></i>
+      </div>
+      <span class="bnav-label">Beranda</span>
+    </a>
+    <a href="galeri.html" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-regular fa-images"></i></div>
+      <span class="bnav-label">Galeri</span>
+    </a>
+    <a href="referensi.html" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-regular fa-folder-open"></i></div>
+      <span class="bnav-label">Referensi</span>
+    </a>
+    <a href="index.html#kontak" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-solid fa-phone"></i></div>
+      <span class="bnav-label">Kontak</span>
+    </a>
+  </nav>
+</body>
+
+</html>

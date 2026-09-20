@@ -1,0 +1,758 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>File Referensi - Portal MKTAS</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script>
+    (function() {
+      try {
+        var s = JSON.parse(localStorage.getItem('mktas_settings') || '{}');
+        var r = document.documentElement;
+        var p = s.warna_primer || '#6366f1';
+        var h = s.warna_hover || '#4f46e5';
+        var a1 = s.warna_aksen1 || '#10b981';
+        var a2 = s.warna_aksen2 || '#ec4899';
+        r.style.setProperty('--primary-color', p);
+        r.style.setProperty('--primary-hover', h);
+        r.style.setProperty('--accent-color', a1);
+        r.style.setProperty('--secondary-color', a2);
+        r.style.setProperty('--gradient-primary', 'linear-gradient(135deg, ' + p + ' 0%, ' + a2 + ' 100%)');
+        r.style.setProperty('--gradient-hover', 'linear-gradient(135deg, ' + h + ' 0%, ' + a1 + ' 100%)');
+        r.style.setProperty('--gradient-sidebar', 'linear-gradient(180deg, ' + p + ' 0%, ' + a2 + ' 100%)');
+        r.style.setProperty('--gradient-accent', 'linear-gradient(135deg, ' + p + ' 0%, ' + a1 + ' 100%)');
+        r.style.setProperty('--gradient-text', 'linear-gradient(135deg, ' + p + ' 0%, ' + a2 + ' 100%)');
+      } catch(e) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Hero Banner */
+    .page-banner {
+      background: var(--gradient-primary, linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%));
+      color: white;
+      padding: 45px 0 35px;
+      text-align: center;
+      margin-bottom: 30px;
+      border-radius: 0 0 24px 24px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+    }
+
+    .page-banner h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: #ffffff;
+    }
+
+    .page-banner p {
+      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.9);
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    /* Filter & Search Bar */
+    .filter-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 25px;
+      background: white;
+      padding: 16px 20px;
+      border-radius: var(--card-radius);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      border: 1px solid #f1f5f9;
+    }
+
+    .search-input-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 250px;
+      max-width: 400px;
+    }
+
+    .search-input-wrap i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+
+    .search-input-wrap input {
+      padding-left: 40px;
+      width: 100%;
+    }
+
+    .cat-btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .cat-btn {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .cat-btn:hover {
+      background: #e2e8f0;
+      color: var(--primary-color);
+    }
+
+    .cat-btn.active {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+    }
+
+    /* Table Styling */
+    .ref-table-wrap {
+      background: white;
+      border-radius: var(--card-radius);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border: 1px solid #f1f5f9;
+    }
+
+    .ref-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .ref-table th {
+      background: #f8fafc;
+      padding: 16px 20px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #334155;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .ref-table td {
+      padding: 16px 20px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 0.92rem;
+      vertical-align: middle;
+    }
+
+    .ref-table tbody tr:hover {
+      background: #f8fafc;
+    }
+
+    .badge-internal {
+      background: #3b82f6;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .badge-eksternal {
+      background: #f59e0b;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    /* Modal Pratinjau */
+    .modal-preview {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 99999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-preview-box {
+      background: white;
+      width: 100%;
+      max-width: 950px;
+      height: 90vh;
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-preview-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+    }
+
+    .modal-preview-header h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin: 0;
+      max-width: 600px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .modal-preview-body {
+      flex: 1;
+      overflow: auto;
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #e2e8f0;
+    }
+
+    /* Scroll to Top */
+    .btn-scroll-top {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--gradient-primary, var(--primary-color));
+      color: #ffffff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+      z-index: 9999;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(20px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-scroll-top.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .btn-scroll-top:hover {
+      background: var(--gradient-hover, var(--primary-hover, #4338ca));
+      transform: translateY(-3px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Footer Styling */
+    .public-footer {
+      background: #1f2937 !important;
+      color: #ffffff !important;
+      padding: 45px 0 25px;
+      margin-top: auto;
+      border-top: 1px solid #374151;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1.6fr 1.1fr 1fr;
+      gap: 24px;
+      margin-bottom: 25px;
+      align-items: start;
+    }
+
+    .footer-col:nth-child(3) {
+      text-align: right;
+    }
+
+    .footer-col:nth-child(3) .social-links {
+      justify-content: flex-end;
+    }
+
+    .footer-col h4 {
+      color: #ffffff;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .footer-col p {
+      color: #9ca3af;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .footer-contact-link {
+      color: #cbd5e1;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .footer-contact-link:hover {
+      color: #ffffff !important;
+      text-decoration: underline !important;
+    }
+
+    .social-links a {
+      color: #cbd5e1;
+      font-size: 1.4rem;
+      margin-right: 15px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s ease;
+    }
+
+    .social-links a:hover {
+      color: var(--primary-color, #2563eb);
+      transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+      .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 25px;
+      }
+
+      .ref-table {
+        min-width: 580px !important;
+      }
+
+      .ref-table th, .ref-table td {
+        padding: 10px 12px !important;
+        font-size: 0.82rem !important;
+      }
+
+      .filter-bar {
+        padding: 12px 14px !important;
+        gap: 10px !important;
+      }
+
+      .search-input-wrap {
+        min-width: 100% !important;
+        max-width: 100% !important;
+      }
+
+      .cat-btn-group {
+        overflow-x: auto;
+        width: 100%;
+        padding-bottom: 4px;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .cat-btn {
+        flex-shrink: 0;
+        font-size: 0.8rem !important;
+        padding: 6px 13px !important;
+      }
+
+      .modal-preview-box {
+        width: 96% !important;
+        max-width: 96% !important;
+        height: 85vh !important;
+        border-radius: 12px !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="has-bottom-nav" style="display: flex; flex-direction: column; min-height: 100vh;">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+      <a href="index.html" class="brand" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+        <svg id="header-logo-svg" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#2563eb"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+        </svg>
+        <img id="header-logo-img" src="" alt="Logo"
+          style="width: 38px; height: 38px; object-fit: contain; display: none;" />
+        <div style="display: flex; flex-direction: column; justify-content: center; text-align: left; line-height: 1.15;">
+          <div style="font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px;">
+            <span style="color: #f97316;">Portal</span> <span style="color: #2563eb;">MKTAS</span>
+          </div>
+          <small id="header-wilayah"
+            style="font-size: 0.78rem; font-weight: 600; color: #64748b; margin-top: 3px; display: block;"></small>
+        </div>
+      </a>
+      <nav class="nav-links">
+        <a href="index.html">Beranda</a>
+        <a href="berita.html">Berita</a>
+        <a href="index.html#jadwal">Jadwal</a>
+        <a href="profil.html">Profil</a>
+        <a href="galeri.html">Galeri</a>
+        <a href="referensi.html" class="active" style="color: var(--primary-color); font-weight: 600;">File Referensi</a>
+        <a href="#kontak">Kontak</a>
+        <a href="login.html" class="btn btn-primary">Masuk Portal</a>
+      </nav>
+      <!-- Tombol Masuk Portal Khusus Mobile Kanan Atas -->
+      <a href="login.html" class="btn-portal-mobile" title="Masuk Portal">
+        <i class="fa-solid fa-arrow-right-to-bracket"></i>
+        <span>Masuk</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Banner -->
+  <div class="page-banner">
+    <div class="container">
+      <h1>File & Dokumen Referensi</h1>
+      <p>Kumpulan dokumen pedoman, peraturan, juknis, dan referensi administrasi sekolah yang dapat diakses dan diunduh</p>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="container" style="flex: 1; padding-bottom: 60px;">
+    <!-- Filter & Search Bar -->
+    <div class="filter-bar">
+      <div class="search-input-wrap">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="ref-search" class="form-control" placeholder="Cari nama dokumen..." oninput="filterReferensi()" />
+      </div>
+      <div class="cat-btn-group">
+        <button class="cat-btn active" onclick="filterKategori('all', this)">Semua</button>
+        <button class="cat-btn" onclick="filterKategori('Internal', this)">Internal</button>
+        <button class="cat-btn" onclick="filterKategori('Eksternal', this)">Eksternal</button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="ref-table-wrap">
+      <div style="overflow-x: auto;">
+        <table class="ref-table" id="table-publik-referensi">
+          <thead>
+            <tr>
+              <th style="width: 50px; text-align: center;">No</th>
+              <th>Nama Dokumen / Referensi</th>
+              <th style="width: 130px;">Kategori</th>
+              <th>Sumber / Berkas</th>
+              <th style="width: 180px; text-align: center;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="5" style="text-align: center; padding: 40px 0;">
+                <div class="loader" style="margin: 0 auto;"></div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal Pratinjau Dokumen -->
+  <div id="modal-preview-doc" class="modal-preview" onclick="closeDocPreview(event)">
+    <div class="modal-preview-box">
+      <div class="modal-preview-header">
+        <h3 id="doc-preview-title">Pratinjau Dokumen</h3>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <a id="btn-doc-download" href="#" class="btn btn-sm btn-primary" download style="display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-download"></i> Unduh File
+          </a>
+          <button class="btn btn-sm btn-outline" onclick="closeDocPreview()">&times; Tutup</button>
+        </div>
+      </div>
+      <div id="doc-preview-body" class="modal-preview-body">
+        <!-- Content will be rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER TERPUSAT (js/footer.js) -->
+  <footer class="public-footer" id="kontak"></footer>
+
+  <!-- Tombol Scroll ke Atas -->
+  <button id="btn-scroll-top" class="btn-scroll-top" title="Kembali ke Atas" onclick="scrollToTop()">
+    <i class="fa-solid fa-arrow-up"></i>
+  </button>
+
+  <script src="js/api.js"></script>
+  <script src="js/footer.js"></script>
+  <script>
+    let allReferensi = [];
+    let activeKategori = 'all';
+
+    async function loadReferensiPublik() {
+      const tbody = document.querySelector('#table-publik-referensi tbody');
+      try {
+        const res = await fetchAPI('getReferenceFiles', {});
+        if (res.status === 'success' && res.data) {
+          allReferensi = res.data;
+          renderTabel();
+        } else {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red; padding: 30px;">Gagal memuat file referensi.</td></tr>';
+        }
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red; padding: 30px;">Terjadi kesalahan saat memuat data.</td></tr>';
+      }
+    }
+
+    function filterKategori(kat, btn) {
+      activeKategori = kat;
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderTabel();
+    }
+
+    function filterReferensi() {
+      renderTabel();
+    }
+
+    function renderTabel() {
+      const tbody = document.querySelector('#table-publik-referensi tbody');
+      const search = (document.getElementById('ref-search').value || '').toLowerCase();
+
+      const filtered = allReferensi.filter(r => {
+        const matchSearch = (r.nama && r.nama.toLowerCase().includes(search)) ||
+                            (r.file_name && r.file_name.toLowerCase().includes(search));
+        const matchCat = (activeKategori === 'all') || (r.jenis === activeKategori);
+        return matchSearch && matchCat;
+      });
+
+      if (!filtered.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 35px;">Tidak ada dokumen referensi yang sesuai.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((r, idx) => {
+        const badge = r.jenis === 'Internal'
+          ? '<span class="badge-internal">Internal</span>'
+          : '<span class="badge-eksternal">Eksternal</span>';
+
+        let sumber = '';
+        let unduhBtn = '';
+        if (r.tipe_sumber === 'file') {
+          const sizeKB = r.file_size ? (r.file_size / 1024).toFixed(0) : '0';
+          sumber = `<i class="fa-solid fa-file-pdf" style="color:#ef4444; margin-right:6px;"></i> ${r.file_name || 'Dokumen'} <small style="color:var(--text-muted);">(${sizeKB} KB)</small>`;
+          unduhBtn = `<a href="${r.file_data}" download="${r.file_name || 'dokumen'}" class="btn btn-sm btn-outline" style="padding: 4px 8px;" title="Unduh File"><i class="fa-solid fa-download"></i> Unduh</a>`;
+        } else {
+          sumber = `<i class="fa-solid fa-link" style="color:#3b82f6; margin-right:6px;"></i> <a href="${r.url}" target="_blank" style="color:var(--primary-color); text-decoration:underline;">${r.url && r.url.length > 35 ? r.url.substring(0, 35) + '...' : (r.url || '-')}</a>`;
+          unduhBtn = `<a href="${r.url}" target="_blank" class="btn btn-sm btn-outline" style="padding: 4px 8px;" title="Buka Link"><i class="fa-solid fa-external-link"></i> Buka</a>`;
+        }
+
+        return `
+          <tr>
+            <td style="text-align: center; font-weight: bold; color: var(--text-muted);">${idx + 1}</td>
+            <td><b>${r.nama}</b></td>
+            <td>${badge}</td>
+            <td>${sumber}</td>
+            <td style="text-align: center;">
+              <div style="display: flex; gap: 6px; justify-content: center;">
+                <button class="btn btn-sm btn-info" onclick="previewDoc('${r.id}')" style="padding: 4px 10px;">
+                  <i class="fa-solid fa-eye"></i> Lihat
+                </button>
+                ${unduhBtn}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function previewDoc(id) {
+      const doc = allReferensi.find(item => item.id === id);
+      if (!doc) return;
+
+      document.getElementById('doc-preview-title').textContent = doc.nama;
+      const body = document.getElementById('doc-preview-body');
+      const btnDownload = document.getElementById('btn-doc-download');
+
+      if (doc.tipe_sumber === 'url') {
+        btnDownload.href = doc.url;
+        btnDownload.removeAttribute('download');
+        btnDownload.target = '_blank';
+        btnDownload.innerHTML = '<i class="fa-solid fa-external-link"></i> Buka Tautan';
+
+        body.innerHTML = `
+          <div style="text-align:center; padding: 40px; background: white; border-radius: 12px; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <i class="fa-solid fa-link" style="font-size: 3.5rem; color: var(--primary-color); margin-bottom: 20px;"></i>
+            <h4 style="margin-bottom: 12px;">${doc.nama}</h4>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px; word-break: break-all;">Dokumen ini bersumber dari tautan eksternal:<br><b>${doc.url}</b></p>
+            <a href="${doc.url}" target="_blank" class="btn btn-primary" style="padding: 10px 24px;">
+              <i class="fa-solid fa-arrow-up-right-from-square" style="margin-right: 8px;"></i> Buka Tautan Referensi
+            </a>
+          </div>
+        `;
+      } else {
+        btnDownload.href = doc.file_data;
+        btnDownload.setAttribute('download', doc.file_name || 'dokumen');
+        btnDownload.target = '_self';
+        btnDownload.innerHTML = '<i class="fa-solid fa-download"></i> Unduh File';
+
+        const isPdf = doc.file_data && (doc.file_data.startsWith('data:application/pdf') || (doc.file_name && doc.file_name.toLowerCase().endsWith('.pdf')));
+        const isImg = doc.file_data && doc.file_data.startsWith('data:image');
+
+        if (isPdf) {
+          body.innerHTML = `<iframe src="${doc.file_data}" style="width: 100%; height: 100%; border: none; border-radius: 8px;"></iframe>`;
+        } else if (isImg) {
+          body.innerHTML = `<img src="${doc.file_data}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px;" />`;
+        } else {
+          body.innerHTML = `
+            <div style="text-align:center; padding: 40px; background: white; border-radius: 12px; max-width: 500px;">
+              <i class="fa-solid fa-file-lines" style="font-size: 3.5rem; color: var(--primary-color); margin-bottom: 20px;"></i>
+              <h4 style="margin-bottom: 10px;">${doc.file_name}</h4>
+              <p style="color: var(--text-muted); margin-bottom: 20px;">Format file tidak mendukung pratinjau langsung di browser.</p>
+              <a href="${doc.file_data}" download="${doc.file_name}" class="btn btn-primary">
+                <i class="fa-solid fa-download" style="margin-right: 8px;"></i> Unduh Sekarang
+              </a>
+            </div>
+          `;
+        }
+      }
+
+      document.getElementById('modal-preview-doc').style.display = 'flex';
+    }
+
+    function closeDocPreview(e) {
+      if (!e || e.target === document.getElementById('modal-preview-doc')) {
+        document.getElementById('modal-preview-doc').style.display = 'none';
+        document.getElementById('doc-preview-body').innerHTML = '';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Load Settings
+      let s = JSON.parse(localStorage.getItem('mktas_settings') || '{}');
+      try {
+        const setRes = await fetchAPI('getSettings', {});
+        if (setRes.status === 'success' && setRes.data) {
+          s = typeof mergeSettings === 'function' ? mergeSettings(s, setRes.data) : Object.assign(s, setRes.data);
+        }
+      } catch (e) {}
+
+      if (typeof applyWarnaSettings === 'function') {
+        applyWarnaSettings(s);
+      }
+
+      if (s.nama_forum) document.getElementById('footer-forum-name').textContent = s.nama_forum;
+      if (s.singkatan_forum) document.getElementById('footer-copyright-name').textContent = s.singkatan_forum;
+      if (s.wilayah) {
+        document.getElementById('footer-region').textContent = s.wilayah;
+        const hw = document.getElementById('header-wilayah');
+        if (hw) hw.textContent = s.wilayah;
+      }
+      if (s.alamat) document.getElementById('footer-address').textContent = s.alamat;
+      if (s.telp) {
+        document.getElementById('footer-phone').textContent = s.telp;
+        let clean = String(s.telp).replace(/[^0-9]/g, '');
+        if (clean.startsWith('0')) clean = '62' + clean.substring(1);
+        const pl = document.getElementById('footer-phone-link');
+        if (pl) pl.href = 'https://wa.me/' + clean;
+      }
+      if (s.email) {
+        document.getElementById('footer-email').textContent = s.email;
+        const el = document.getElementById('footer-email-link');
+        if (el) el.href = 'mailto:' + s.email;
+      }
+      if (s.website) {
+        const webUrl = s.website.startsWith('http') ? s.website : 'https://' + s.website;
+        const webEl = document.getElementById('footer-website');
+        if (webEl) {
+          webEl.textContent = s.website.replace(/^https?:\/\//, '');
+          webEl.href = webUrl;
+        }
+      }
+      if (s.logo_forum) {
+        document.getElementById('footer-logo').src = s.logo_forum;
+        document.getElementById('footer-logo').style.display = 'block';
+
+        const headerImg = document.getElementById('header-logo-img');
+        const headerSvg = document.getElementById('header-logo-svg');
+        if (headerImg && headerSvg) {
+          headerImg.src = s.logo_forum;
+          headerImg.style.display = 'block';
+          headerSvg.style.display = 'none';
+        }
+      }
+
+      // 2. Load Socials
+      try {
+        const socRes = await fetchAPI('getSocials', {});
+        const socContainer = document.getElementById('social-container');
+        if (socRes.status === 'success' && socRes.data && socRes.data.length > 0) {
+          socContainer.innerHTML = socRes.data.map(item => `
+            <a href="${item.url}" target="_blank" title="${item.platform}"><i class="${item.icon || 'fa-solid fa-link'}"></i></a>
+          `).join('');
+        }
+      } catch (e) {}
+
+      // 3. Load References
+      loadReferensiPublik();
+
+      // 4. Scroll to Top Logic
+      window.addEventListener('scroll', () => {
+        const btn = document.getElementById('btn-scroll-top');
+        if (btn) {
+          if (window.scrollY > 300) {
+            btn.classList.add('show');
+          } else {
+            btn.classList.remove('show');
+          }
+        }
+      });
+      window.scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  </script>
+
+  <!-- Native Mobile Bottom Navigation (7 Menu Compact) -->
+  <nav class="bottom-nav-mobile" aria-label="Navigasi Bawah">
+    <a href="profil.html" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-solid fa-id-badge"></i></div>
+      <span class="bnav-label">Profil</span>
+    </a>
+    <a href="berita.html" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-regular fa-newspaper"></i></div>
+      <span class="bnav-label">Berita</span>
+    </a>
+    <a href="index.html#jadwal" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-regular fa-calendar-days"></i></div>
+      <span class="bnav-label">Jadwal</span>
+    </a>
+    <a href="index.html" class="bnav-item bnav-center">
+      <div class="bnav-center-circle">
+        <i class="fa-solid fa-house"></i>
+      </div>
+      <span class="bnav-label">Beranda</span>
+    </a>
+    <a href="galeri.html" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-regular fa-images"></i></div>
+      <span class="bnav-label">Galeri</span>
+    </a>
+    <a href="referensi.html" class="bnav-item active">
+      <div class="bnav-icon"><i class="fa-regular fa-folder-open"></i></div>
+      <span class="bnav-label">Referensi</span>
+    </a>
+    <a href="index.html#kontak" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-solid fa-phone"></i></div>
+      <span class="bnav-label">Kontak</span>
+    </a>
+  </nav>
+</body>
+
+</html>

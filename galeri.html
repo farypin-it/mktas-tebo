@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Galeri Dokumentasi - Portal MKTAS</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script>
+    (function() {
+      try {
+        var s = JSON.parse(localStorage.getItem('mktas_settings') || '{}');
+        var r = document.documentElement;
+        var p = s.warna_primer || '#6366f1';
+        var h = s.warna_hover || '#4f46e5';
+        var a1 = s.warna_aksen1 || '#10b981';
+        var a2 = s.warna_aksen2 || '#ec4899';
+        r.style.setProperty('--primary-color', p);
+        r.style.setProperty('--primary-hover', h);
+        r.style.setProperty('--accent-color', a1);
+        r.style.setProperty('--secondary-color', a2);
+        r.style.setProperty('--gradient-primary', 'linear-gradient(135deg, ' + p + ' 0%, ' + a2 + ' 100%)');
+        r.style.setProperty('--gradient-hover', 'linear-gradient(135deg, ' + h + ' 0%, ' + a1 + ' 100%)');
+        r.style.setProperty('--gradient-sidebar', 'linear-gradient(180deg, ' + p + ' 0%, ' + a2 + ' 100%)');
+        r.style.setProperty('--gradient-accent', 'linear-gradient(135deg, ' + p + ' 0%, ' + a1 + ' 100%)');
+        r.style.setProperty('--gradient-text', 'linear-gradient(135deg, ' + p + ' 0%, ' + a2 + ' 100%)');
+      } catch(e) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Hero Banner */
+    .page-banner {
+      background: var(--gradient-primary, linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%));
+      color: white;
+      padding: 45px 0 35px;
+      text-align: center;
+      margin-bottom: 30px;
+      border-radius: 0 0 24px 24px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+    }
+
+    .page-banner h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: #ffffff;
+    }
+
+    .page-banner p {
+      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.9);
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    /* Tab Switcher */
+    .galeri-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
+    .galeri-tab-btn {
+      padding: 12px 28px;
+      border: 2px solid transparent;
+      border-radius: 30px;
+      background: #f1f5f9;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .galeri-tab-btn:hover {
+      background: #e2e8f0;
+      color: var(--primary-color);
+      transform: translateY(-2px);
+    }
+
+    .galeri-tab-btn.active {
+      background: var(--gradient-primary, var(--primary-color));
+      color: white;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      border-color: transparent;
+      transform: translateY(-2px);
+    }
+
+    /* Photo Grid */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .gallery-card {
+      background: white;
+      border-radius: var(--card-radius);
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #f1f5f9;
+      cursor: pointer;
+    }
+
+    .gallery-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+      border-color: #cbd5e1;
+    }
+
+    .gallery-img-wrap {
+      width: 100%;
+      height: 200px;
+      overflow: hidden;
+      position: relative;
+      background: #e2e8f0;
+    }
+
+    .gallery-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .gallery-card:hover .gallery-img-wrap img {
+      transform: scale(1.06);
+    }
+
+    .gallery-overlay-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(0, 0, 0, 0.65);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      backdrop-filter: blur(4px);
+    }
+
+    .gallery-info {
+      padding: 18px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .gallery-info h4 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-color);
+      margin-bottom: 8px;
+      line-height: 1.35;
+    }
+
+    .gallery-info p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      flex: 1;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Video Player Card */
+    .video-card {
+      background: white;
+      border-radius: var(--card-radius);
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+      border: 1px solid #f1f5f9;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s ease;
+    }
+
+    .video-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .video-embed-wrap {
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%; /* 16:9 ratio */
+      height: 0;
+      background: #000;
+    }
+
+    .video-embed-wrap iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    /* Lightbox Modal */
+    .lightbox-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 99999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(6px);
+    }
+
+    .lightbox-content {
+      max-width: 900px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .lightbox-img {
+      max-width: 100%;
+      max-height: 75vh;
+      border-radius: 8px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      object-fit: contain;
+    }
+
+    .lightbox-caption {
+      color: white;
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+    }
+
+    /* Scroll to Top */
+    .btn-scroll-top {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--gradient-primary, var(--primary-color));
+      color: #ffffff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+      z-index: 9999;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(20px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-scroll-top.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .btn-scroll-top:hover {
+      background: var(--gradient-hover, var(--primary-hover, #4338ca));
+      transform: translateY(-3px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Footer Styling */
+    .public-footer {
+      background: #1f2937 !important;
+      color: #ffffff !important;
+      padding: 45px 0 25px;
+      margin-top: auto;
+      border-top: 1px solid #374151;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1.6fr 1.1fr 1fr;
+      gap: 24px;
+      margin-bottom: 25px;
+      align-items: start;
+    }
+
+    .footer-col:nth-child(3) {
+      text-align: right;
+    }
+
+    .footer-col:nth-child(3) .social-links {
+      justify-content: flex-end;
+    }
+
+    .footer-col h4 {
+      color: #ffffff;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .footer-col p {
+      color: #9ca3af;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .footer-contact-link {
+      color: #cbd5e1;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .footer-contact-link:hover {
+      color: #ffffff !important;
+      text-decoration: underline !important;
+    }
+
+    .social-links a {
+      color: #cbd5e1;
+      font-size: 1.4rem;
+      margin-right: 15px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s ease;
+    }
+
+    .social-links a:hover {
+      color: var(--primary-color, #2563eb);
+      transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+      .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 25px;
+      }
+
+      .gallery-grid, .video-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+      }
+
+      .galeri-tabs {
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+
+      .galeri-tab-btn {
+        padding: 8px 18px !important;
+        font-size: 0.85rem !important;
+      }
+
+      .gallery-img-wrap {
+        height: 180px !important;
+      }
+
+      .lightbox-close {
+        top: -36px;
+        right: 8px;
+        font-size: 1.6rem;
+      }
+    }
+  </style>
+</head>
+
+<body class="has-bottom-nav" style="display: flex; flex-direction: column; min-height: 100vh;">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+      <a href="index.html" class="brand" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+        <svg id="header-logo-svg" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#2563eb"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+        </svg>
+        <img id="header-logo-img" src="" alt="Logo"
+          style="width: 38px; height: 38px; object-fit: contain; display: none;" />
+        <div style="display: flex; flex-direction: column; justify-content: center; text-align: left; line-height: 1.15;">
+          <div style="font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px;">
+            <span style="color: #f97316;">Portal</span> <span style="color: #2563eb;">MKTAS</span>
+          </div>
+          <small id="header-wilayah"
+            style="font-size: 0.78rem; font-weight: 600; color: #64748b; margin-top: 3px; display: block;"></small>
+        </div>
+      </a>
+      <nav class="nav-links">
+        <a href="index.html">Beranda</a>
+        <a href="berita.html">Berita</a>
+        <a href="index.html#jadwal">Jadwal</a>
+        <a href="profil.html">Profil</a>
+        <a href="galeri.html" class="active" style="color: var(--primary-color); font-weight: 600;">Galeri</a>
+        <a href="referensi.html">File Referensi</a>
+        <a href="#kontak">Kontak</a>
+        <a href="login.html" class="btn btn-primary">Masuk Portal</a>
+      </nav>
+      <!-- Tombol Masuk Portal Khusus Mobile Kanan Atas -->
+      <a href="login.html" class="btn-portal-mobile" title="Masuk Portal">
+        <i class="fa-solid fa-arrow-right-to-bracket"></i>
+        <span>Masuk</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Banner -->
+  <div class="page-banner">
+    <div class="container">
+      <h1>Galeri Dokumentasi</h1>
+      <p>Kumpulan foto dan video dokumentasi kegiatan Tenaga Administrasi Sekolah</p>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="container" style="flex: 1; padding-bottom: 60px;">
+    <!-- Tab Switcher -->
+    <div class="galeri-tabs">
+      <button class="galeri-tab-btn active" onclick="switchGaleriTab('foto', this)">
+        <i class="fa-solid fa-camera"></i> Galeri Foto
+      </button>
+      <button class="galeri-tab-btn" onclick="switchGaleriTab('video', this)">
+        <i class="fa-solid fa-video"></i> Galeri Video
+      </button>
+    </div>
+
+    <!-- TAB FOTO -->
+    <div id="tab-galeri-foto" style="display: block;">
+      <div id="foto-container" class="gallery-grid">
+        <div class="loader" style="grid-column: 1 / -1; margin: 40px auto;"></div>
+      </div>
+    </div>
+
+    <!-- TAB VIDEO -->
+    <div id="tab-galeri-video" style="display: none;">
+      <div id="video-container" class="gallery-grid">
+        <div class="loader" style="grid-column: 1 / -1; margin: 40px auto;"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Lightbox Modal Foto -->
+  <div id="lightbox-modal" class="lightbox-modal" onclick="closeLightbox(event)">
+    <div class="lightbox-content">
+      <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+      <img id="lightbox-img" class="lightbox-img" src="" alt="Pratinjau Foto" />
+      <div class="lightbox-caption">
+        <h3 id="lightbox-title" style="margin-bottom: 5px; color: white;"></h3>
+        <p id="lightbox-desc" style="color: #cbd5e1; font-size: 0.95rem;"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER TERPUSAT (js/footer.js) -->
+  <footer class="public-footer" id="kontak"></footer>
+
+  <!-- Tombol Scroll ke Atas -->
+  <button id="btn-scroll-top" class="btn-scroll-top" title="Kembali ke Atas" onclick="scrollToTop()">
+    <i class="fa-solid fa-arrow-up"></i>
+  </button>
+
+  <script src="js/api.js"></script>
+  <script src="js/footer.js"></script>
+  <script>
+    function extractYoutubeId(url) {
+      if (!url) return null;
+      const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+      return m ? m[1] : null;
+    }
+
+    function switchGaleriTab(tabName, btn) {
+      document.querySelectorAll('.galeri-tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.getElementById('tab-galeri-foto').style.display = (tabName === 'foto') ? 'block' : 'none';
+      document.getElementById('tab-galeri-video').style.display = (tabName === 'video') ? 'block' : 'none';
+    }
+
+    function openLightbox(imageUrl, title, desc) {
+      document.getElementById('lightbox-img').src = imageUrl;
+      document.getElementById('lightbox-title').textContent = title || '';
+      document.getElementById('lightbox-desc').textContent = desc || '';
+      document.getElementById('lightbox-modal').style.display = 'flex';
+    }
+
+    window._galleryPhotos = [];
+    function openLightboxByIndex(index) {
+      const p = window._galleryPhotos[index];
+      if (p) {
+        openLightbox(p.image_url, p.title, p.description);
+      }
+    }
+
+    function closeLightbox(e) {
+      if (!e || e.target === document.getElementById('lightbox-modal') || e.target.classList.contains('lightbox-close')) {
+        document.getElementById('lightbox-modal').style.display = 'none';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Load Settings
+      let s = JSON.parse(localStorage.getItem('mktas_settings') || '{}');
+      try {
+        const setRes = await fetchAPI('getSettings', {});
+        if (setRes.status === 'success' && setRes.data) {
+          s = typeof mergeSettings === 'function' ? mergeSettings(s, setRes.data) : Object.assign(s, setRes.data);
+        }
+      } catch (e) {}
+
+      if (typeof applyWarnaSettings === 'function') {
+        applyWarnaSettings(s);
+      }
+
+      if (s.nama_forum) document.getElementById('footer-forum-name').textContent = s.nama_forum;
+      if (s.singkatan_forum) document.getElementById('footer-copyright-name').textContent = s.singkatan_forum;
+      if (s.wilayah) {
+        document.getElementById('footer-region').textContent = s.wilayah;
+        const hw = document.getElementById('header-wilayah');
+        if (hw) hw.textContent = s.wilayah;
+      }
+      if (s.alamat) document.getElementById('footer-address').textContent = s.alamat;
+      if (s.telp) {
+        document.getElementById('footer-phone').textContent = s.telp;
+        let clean = String(s.telp).replace(/[^0-9]/g, '');
+        if (clean.startsWith('0')) clean = '62' + clean.substring(1);
+        const pl = document.getElementById('footer-phone-link');
+        if (pl) pl.href = 'https://wa.me/' + clean;
+      }
+      if (s.email) {
+        document.getElementById('footer-email').textContent = s.email;
+        const el = document.getElementById('footer-email-link');
+        if (el) el.href = 'mailto:' + s.email;
+      }
+      if (s.website) {
+        const webUrl = s.website.startsWith('http') ? s.website : 'https://' + s.website;
+        const webEl = document.getElementById('footer-website');
+        if (webEl) {
+          webEl.textContent = s.website.replace(/^https?:\/\//, '');
+          webEl.href = webUrl;
+        }
+      }
+      if (s.logo_forum) {
+        document.getElementById('footer-logo').src = s.logo_forum;
+        document.getElementById('footer-logo').style.display = 'block';
+
+        const headerImg = document.getElementById('header-logo-img');
+        const headerSvg = document.getElementById('header-logo-svg');
+        if (headerImg && headerSvg) {
+          headerImg.src = s.logo_forum;
+          headerImg.style.display = 'block';
+          headerSvg.style.display = 'none';
+        }
+      }
+
+      // 2. Load Socials
+      try {
+        const socRes = await fetchAPI('getSocials', {});
+        const socContainer = document.getElementById('social-container');
+        if (socRes.status === 'success' && socRes.data && socRes.data.length > 0) {
+          socContainer.innerHTML = socRes.data.map(item => `
+            <a href="${item.url}" target="_blank" title="${item.platform}"><i class="${item.icon || 'fa-solid fa-link'}"></i></a>
+          `).join('');
+        }
+      } catch (e) {}
+
+      // 3. Load Photos
+      const fotoContainer = document.getElementById('foto-container');
+      try {
+        const fotoRes = await fetchAPI('getGalleryPhotos', {});
+        if (fotoRes.status === 'success' && fotoRes.data && fotoRes.data.length > 0) {
+          window._galleryPhotos = fotoRes.data;
+          fotoContainer.innerHTML = fotoRes.data.map((p, idx) => `
+            <div class="gallery-card" onclick="openLightboxByIndex(${idx})">
+              <div class="gallery-img-wrap">
+                <img src="${p.image_url}" alt="${p.title || 'Foto'}" loading="lazy" />
+                <span class="gallery-overlay-badge"><i class="fa-solid fa-magnifying-glass-plus"></i> Lihat</span>
+              </div>
+              <div class="gallery-info">
+                <h4>${p.title || 'Tanpa Judul'}</h4>
+                <p>${p.description || 'Tidak ada deskripsi.'}</p>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          fotoContainer.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 50px 0;">Belum ada foto dokumentasi.</p>';
+        }
+      } catch (e) {
+        fotoContainer.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: red; padding: 50px 0;">Gagal memuat galeri foto.</p>';
+      }
+
+      // 4. Load Videos
+      const videoContainer = document.getElementById('video-container');
+      try {
+        const videoRes = await fetchAPI('getGalleryVideos', {});
+        if (videoRes.status === 'success' && videoRes.data && videoRes.data.length > 0) {
+          videoContainer.innerHTML = videoRes.data.map(v => {
+            const ytId = extractYoutubeId(v.video_url);
+            const embed = ytId
+              ? `<iframe src="https://www.youtube-nocookie.com/embed/${ytId}" title="${v.title || 'Video'}" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>`
+              : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#fff;background:#1e293b;"><a href="${v.video_url}" target="_blank" style="color:#60a5fa;"><i class="fa-solid fa-external-link"></i> Buka Video</a></div>`;
+
+            return `
+              <div class="video-card">
+                <div class="video-embed-wrap">
+                  ${embed}
+                </div>
+                <div class="gallery-info">
+                  <h4>${v.title || 'Tanpa Judul'}</h4>
+                  <p>${v.description || 'Tidak ada deskripsi.'}</p>
+                </div>
+              </div>
+            `;
+          }).join('');
+        } else {
+          videoContainer.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 50px 0;">Belum ada video dokumentasi.</p>';
+        }
+      } catch (e) {
+        videoContainer.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: red; padding: 50px 0;">Gagal memuat galeri video.</p>';
+      }
+
+      // 5. Scroll to Top Logic
+      window.addEventListener('scroll', () => {
+        const btn = document.getElementById('btn-scroll-top');
+        if (btn) {
+          if (window.scrollY > 300) {
+            btn.classList.add('show');
+          } else {
+            btn.classList.remove('show');
+          }
+        }
+      });
+      window.scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  </script>
+
+  <!-- Native Mobile Bottom Navigation (7 Menu Compact) -->
+  <nav class="bottom-nav-mobile" aria-label="Navigasi Bawah">
+    <a href="profil.html" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-solid fa-id-badge"></i></div>
+      <span class="bnav-label">Profil</span>
+    </a>
+    <a href="berita.html" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-regular fa-newspaper"></i></div>
+      <span class="bnav-label">Berita</span>
+    </a>
+    <a href="index.html#jadwal" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-regular fa-calendar-days"></i></div>
+      <span class="bnav-label">Jadwal</span>
+    </a>
+    <a href="index.html" class="bnav-item bnav-center">
+      <div class="bnav-center-circle">
+        <i class="fa-solid fa-house"></i>
+      </div>
+      <span class="bnav-label">Beranda</span>
+    </a>
+    <a href="galeri.html" class="bnav-item active">
+      <div class="bnav-icon"><i class="fa-regular fa-images"></i></div>
+      <span class="bnav-label">Galeri</span>
+    </a>
+    <a href="referensi.html" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-regular fa-folder-open"></i></div>
+      <span class="bnav-label">Referensi</span>
+    </a>
+    <a href="index.html#kontak" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-solid fa-phone"></i></div>
+      <span class="bnav-label">Kontak</span>
+    </a>
+  </nav>
+</body>
+
+</html>

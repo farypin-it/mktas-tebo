@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Kumpulan Berita - SIM MKTAS</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script>
+    (function() {
+      try {
+        var s = JSON.parse(localStorage.getItem('mktas_settings') || '{}');
+        var r = document.documentElement;
+        var p = s.warna_primer || '#6366f1';
+        var h = s.warna_hover || '#4f46e5';
+        var a1 = s.warna_aksen1 || '#10b981';
+        var a2 = s.warna_aksen2 || '#ec4899';
+        r.style.setProperty('--primary-color', p);
+        r.style.setProperty('--primary-hover', h);
+        r.style.setProperty('--accent-color', a1);
+        r.style.setProperty('--secondary-color', a2);
+        r.style.setProperty('--gradient-primary', 'linear-gradient(135deg, ' + p + ' 0%, ' + a2 + ' 100%)');
+        r.style.setProperty('--gradient-hover', 'linear-gradient(135deg, ' + h + ' 0%, ' + a1 + ' 100%)');
+        r.style.setProperty('--gradient-sidebar', 'linear-gradient(180deg, ' + p + ' 0%, ' + a2 + ' 100%)');
+        r.style.setProperty('--gradient-accent', 'linear-gradient(135deg, ' + p + ' 0%, ' + a1 + ' 100%)');
+        r.style.setProperty('--gradient-text', 'linear-gradient(135deg, ' + p + ' 0%, ' + a2 + ' 100%)');
+      } catch(e) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+    .btn-scroll-top {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--gradient-primary, var(--primary-color));
+      color: #ffffff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+      z-index: 9999;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(20px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-scroll-top.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    .btn-scroll-top:hover {
+      background: var(--gradient-hover, var(--primary-hover, #4338ca));
+      transform: translateY(-3px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    }
+    .public-footer {
+      background: #1f2937;
+      color: white;
+      padding: 40px 0 20px;
+      margin-top: auto;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1.6fr 1.1fr 1fr;
+      gap: 24px;
+      margin-bottom: 25px;
+      align-items: start;
+    }
+
+    .footer-col:nth-child(3) {
+      text-align: right;
+    }
+
+    .footer-col:nth-child(3) .social-links {
+      justify-content: flex-end;
+    }
+
+    .footer-col h4 {
+      color: white;
+      margin-bottom: 15px;
+    }
+
+    .social-links a {
+      color: white;
+      font-size: 1.5rem;
+      margin-right: 15px;
+      transition: var(--transition);
+    }
+
+    .social-links a:hover {
+      color: var(--primary-color);
+    }
+
+
+  </style>
+</head>
+
+<body class="has-bottom-nav" style="display: flex; flex-direction: column; min-height: 100vh;">
+  <header class="header">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+      <a href="index.html" class="brand" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+        <svg id="header-logo-svg" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#2563eb"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+        </svg>
+        <img id="header-logo-img" src="" alt="Logo"
+          style="width: 38px; height: 38px; object-fit: contain; display: none;" />
+        <div style="display: flex; flex-direction: column; justify-content: center; text-align: left; line-height: 1.15;">
+          <div style="font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px;">
+            <span style="color: #f97316;">Portal</span> <span style="color: #2563eb;">MKTAS</span>
+          </div>
+          <small id="header-wilayah"
+            style="font-size: 0.78rem; font-weight: 600; color: #64748b; margin-top: 3px; display: block;"></small>
+        </div>
+      </a>
+      <nav class="nav-links">
+        <a href="index.html">Beranda</a>
+        <a href="berita.html" class="active" style="color: var(--primary-color); font-weight: 600;">Berita</a>
+        <a href="index.html#jadwal">Jadwal</a>
+        <a href="profil.html">Profil</a>
+        <a href="galeri.html">Galeri</a>
+        <a href="referensi.html">File Referensi</a>
+        <a href="index.html#kontak">Kontak</a>
+        <a href="login.html" class="btn btn-primary">Masuk Portal</a>
+      </nav>
+      <!-- Tombol Masuk Portal Khusus Mobile Kanan Atas -->
+      <a href="login.html" class="btn-portal-mobile" title="Masuk Portal">
+        <i class="fa-solid fa-arrow-right-to-bracket"></i>
+        <span>Masuk</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="container" style="flex: 1; padding-top: 30px; padding-bottom: 50px;">
+    <h2
+      style="border-bottom: 2px solid var(--primary-color); display: inline-block; padding-bottom: 5px; margin-bottom: 20px;">
+      Semua Berita</h2>
+
+    <div id="all-news-container" class="news-grid">
+      <div class="loader" style="grid-column: 1 / -1; margin: 50px auto;"></div>
+    </div>
+  </main>
+
+  <!-- FOOTER TERPUSAT (js/footer.js) -->
+  <footer class="public-footer" id="kontak"></footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/footer.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      let localSet = JSON.parse(localStorage.getItem('mktas_settings') || '{}');
+      try {
+        if (typeof fetchAPI !== 'undefined') {
+          const res = await fetchAPI('getSettings', {});
+          if (res && res.status === 'success' && res.data) {
+              localSet = typeof mergeSettings === 'function' ? mergeSettings(localSet, res.data) : Object.assign(localSet, res.data);
+          }
+        }
+      } catch (e) {}
+
+      if (typeof applyWarnaSettings === 'function') {
+        applyWarnaSettings(localSet);
+      }
+
+      // Populate Header & Footer Branding
+      if (localSet.wilayah) {
+        const hw = document.getElementById('header-wilayah');
+        if (hw) hw.textContent = localSet.wilayah;
+        const fr = document.getElementById('footer-region');
+        if (fr) fr.textContent = localSet.wilayah;
+      }
+      if (localSet.nama_forum) {
+        const fn = document.getElementById('footer-forum-name');
+        if (fn) fn.textContent = localSet.nama_forum;
+      }
+      if (localSet.singkatan_forum) {
+        const fc = document.getElementById('footer-copyright-name');
+        if (fc) fc.textContent = localSet.singkatan_forum;
+      }
+      if (localSet.alamat) {
+        const fa = document.getElementById('footer-address');
+        if (fa) fa.textContent = localSet.alamat;
+      }
+      if (localSet.telp) {
+        const fp = document.getElementById('footer-phone');
+        if (fp) fp.textContent = localSet.telp;
+        let cleanTelp = String(localSet.telp).replace(/[^0-9]/g, '');
+        if (cleanTelp.startsWith('0')) cleanTelp = '62' + cleanTelp.substring(1);
+        const fpl = document.getElementById('footer-phone-link');
+        if (fpl) fpl.href = 'https://wa.me/' + cleanTelp;
+      }
+      if (localSet.email) {
+        const fe = document.getElementById('footer-email');
+        if (fe) fe.textContent = localSet.email;
+        const fel = document.getElementById('footer-email-link');
+        if (fel) fel.href = 'mailto:' + localSet.email;
+      }
+      if (localSet.website) {
+        const fw = document.getElementById('footer-website');
+        if (fw) {
+          const website = String(localSet.website);
+          fw.textContent = website.replace(/^https?:\/\//, '');
+          fw.href = website.startsWith('http') ? website : 'https://' + website;
+        }
+      }
+      if (localSet.logo_forum) {
+        const fl = document.getElementById('footer-logo');
+        if (fl) { fl.src = localSet.logo_forum; fl.style.display = 'block'; }
+        const hl = document.getElementById('header-logo-img');
+        if (hl) { hl.src = localSet.logo_forum; hl.style.display = 'block'; }
+        const hs = document.getElementById('header-logo-svg');
+        if (hs) hs.style.display = 'none';
+      }
+
+      // Load All News
+      const newsRes = await fetchAPI('getNews', {});
+      const container = document.getElementById('all-news-container');
+
+      if (newsRes.status === 'success' && newsRes.data) {
+        const published = newsRes.data.filter(n => n.is_published);
+        if (published.length > 0) {
+          container.innerHTML = published.map(n => {
+            const baseDomain = (localSet.domain_resmi || localSet.website || 'https://www.mktas-tebo.or.id').replace(/\/+$/, '');
+            const slug = n.slug || (typeof generateNewsSlug === 'function' ? generateNewsSlug(n.title, n.date) : n.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
+            const detailUrl = (window.location.protocol.startsWith('http') && !window.location.hostname.includes('github.io')) 
+              ? `${baseDomain}/berita/${slug}.html` 
+              : `berita/${slug}.html`;
+            // Hapus tag HTML dari konten untuk preview
+            const cleanContent = String(n.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+            
+            return `
+              <div class="news-card shadow" onclick="window.location.href='${detailUrl}'">
+                <img src="${n.image_url || 'https://via.placeholder.com/120x80?text=News'}" class="news-img" alt="Berita">
+                <div class="news-content" style="display: flex; flex-direction: column; justify-content: space-between;">
+                  <h4>${n.title}</h4>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
+                    <div class="news-date" style="margin-bottom: 0;"><i class="fa-regular fa-calendar"></i> ${n.date}</div>
+                    <a href="${detailUrl}" class="news-btn" style="font-size: 0.8rem; text-decoration: none; font-weight: 500;" onclick="event.stopPropagation();"><span class="read-more-text">Baca selengkapnya</span> <i class="fa-solid fa-arrow-right"></i></a>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+        } else {
+          container.innerHTML = '<p class="text-muted" style="grid-column: 1 / -1;">Belum ada berita dipublikasikan.</p>';
+        }
+      } else {
+        container.innerHTML = '<p class="text-muted" style="grid-column: 1 / -1;">Gagal memuat berita.</p>';
+      }
+
+      // Load Socials (Footer)
+      const socRes = await fetchAPI('getSocials', {});
+      const socContainer = document.getElementById('social-container');
+      if (socRes.status === 'success' && socRes.data && socRes.data.length > 0) {
+        socContainer.innerHTML = socRes.data.map(s => `
+            <a href="${s.url}" target="_blank" title="${s.platform}"><i class="${s.icon || 'fa-solid fa-link'}"></i></a>
+          `).join('');
+      }
+      // --- SCROLL TO TOP LOGIC ---
+      window.addEventListener('scroll', function() {
+        const btn = document.getElementById('btn-scroll-top');
+        if (btn) {
+          if (window.scrollY > 300) {
+            btn.classList.add('show');
+          } else {
+            btn.classList.remove('show');
+          }
+        }
+      });
+      window.scrollToTop = function() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+    });
+  </script>
+
+  <!-- Tombol Scroll ke Atas -->
+  <button id="btn-scroll-top" class="btn-scroll-top" title="Kembali ke Atas" onclick="scrollToTop()">
+    <i class="fa-solid fa-arrow-up"></i>
+  </button>
+
+  <!-- Native Mobile Bottom Navigation (7 Menu Compact) -->
+  <nav class="bottom-nav-mobile" aria-label="Navigasi Bawah">
+    <a href="profil.html" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-solid fa-id-badge"></i></div>
+      <span class="bnav-label">Profil</span>
+    </a>
+    <a href="berita.html" class="bnav-item active">
+      <div class="bnav-icon"><i class="fa-regular fa-newspaper"></i></div>
+      <span class="bnav-label">Berita</span>
+    </a>
+    <a href="index.html#jadwal" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-regular fa-calendar-days"></i></div>
+      <span class="bnav-label">Jadwal</span>
+    </a>
+    <a href="index.html" class="bnav-item bnav-center">
+      <div class="bnav-center-circle">
+        <i class="fa-solid fa-house"></i>
+      </div>
+      <span class="bnav-label">Beranda</span>
+    </a>
+    <a href="galeri.html" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-regular fa-images"></i></div>
+      <span class="bnav-label">Galeri</span>
+    </a>
+    <a href="referensi.html" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-regular fa-folder-open"></i></div>
+      <span class="bnav-label">Referensi</span>
+    </a>
+    <a href="index.html#kontak" class="bnav-item">
+      <div class="bnav-icon"><i class="fa-solid fa-phone"></i></div>
+      <span class="bnav-label">Kontak</span>
+    </a>
+  </nav>
+</body>
+
+</html>

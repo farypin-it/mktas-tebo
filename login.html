@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Login - Portal MKTAS</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script>
+    (function() {
+      try {
+        var s = JSON.parse(localStorage.getItem('mktas_settings') || '{}');
+        var r = document.documentElement;
+        var p = s.warna_primer || '#6366f1';
+        var h = s.warna_hover || '#4f46e5';
+        var a1 = s.warna_aksen1 || '#10b981';
+        var a2 = s.warna_aksen2 || '#ec4899';
+        r.style.setProperty('--primary-color', p);
+        r.style.setProperty('--primary-hover', h);
+        r.style.setProperty('--accent-color', a1);
+        r.style.setProperty('--secondary-color', a2);
+        r.style.setProperty('--gradient-primary', 'linear-gradient(135deg, ' + p + ' 0%, ' + a2 + ' 100%)');
+        r.style.setProperty('--gradient-hover', 'linear-gradient(135deg, ' + h + ' 0%, ' + a1 + ' 100%)');
+        r.style.setProperty('--gradient-sidebar', 'linear-gradient(180deg, ' + p + ' 0%, ' + a2 + ' 100%)');
+        r.style.setProperty('--gradient-accent', 'linear-gradient(135deg, ' + p + ' 0%, ' + a1 + ' 100%)');
+        r.style.setProperty('--gradient-text', 'linear-gradient(135deg, ' + p + ' 0%, ' + a2 + ' 100%)');
+      } catch(e) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    .login-page {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px 16px;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 400px;
+      padding: 36px 30px;
+    }
+
+    @media (max-width: 480px) {
+      .login-card {
+        padding: 26px 18px !important;
+        border-radius: 16px !important;
+      }
+    }
+
+    .forgot-pwd-btn {
+      color: #2563eb;
+      font-size: 0.86rem;
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .forgot-pwd-btn:hover {
+      color: #1d4ed8;
+      background: rgba(37, 99, 235, 0.08);
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+  <div class="login-page">
+    <div class="glass-panel login-card">
+      <div class="text-center mb-4">
+        <!-- Logo Forum (Kecil di Tengah di Atas Portal MKTAS) -->
+        <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 12px;">
+          <img id="login-logo-forum" src="" alt="Logo Forum"
+            style="width: 58px; height: 58px; object-fit: contain; display: none; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.08));" />
+        </div>
+        <a href="index.html" class="brand" style="justify-content: center; margin-bottom: 6px; display: flex; text-decoration: none; font-size: 1.5rem; font-weight: 800;">
+          <span style="color: #f97316;">Portal</span> <span style="color: #2563eb; margin-left: 5px;">MKTAS</span>
+        </a>
+        <p id="login-wilayah" style="color: #64748b; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px; display: none;"></p>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Masuk ke portal manajemen</p>
+      </div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" class="form-control" required placeholder="Masukkan username" />
+        </div>
+        <div class="form-group" style="margin-bottom: 8px;">
+          <label for="password">Password</label>
+          <div style="position:relative;">
+            <input type="password" id="password" class="form-control" required placeholder="Masukkan password"
+              style="padding-right: 40px;" />
+            <button type="button" id="toggle-password"
+              style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--text-muted);">
+              👁️
+            </button>
+          </div>
+        </div>
+
+        <!-- Tombol Lupa Password di Bawah Kolom Password -->
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 18px;">
+          <button type="button" class="forgot-pwd-btn" data-open-lupa-password style="background:none; border:none; color:var(--primary-color, #2563eb); font-weight:600; cursor:pointer; font-size:0.9rem; padding:4px;">
+            <i class="fa-solid fa-circle-question" style="font-size: 0.85rem;"></i> Lupa Password?
+          </button>
+        </div>
+
+        <div id="login-alert" class="hidden" style="
+              color: #ef4444;
+              margin-bottom: 15px;
+              font-size: 0.9rem;
+              text-align: center;
+            "></div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%" id="btn-login">
+          Masuk
+        </button>
+      </form>
+
+      <div class="text-center mt-4">
+        <a href="index.html" style="
+              color: var(--text-muted);
+              text-decoration: none;
+              font-size: 0.9rem;
+            ">&larr; Kembali ke Web Publik</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Bantuan Lupa Password (Native HTML) -->
+  <div class="modal" id="modal-lupa-password" style="z-index: 99999; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px);">
+    <div class="modal-content" style="max-width: 400px; border-radius: 16px; padding: 32px 28px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); border: 1px solid rgba(255,255,255,0.1); text-align: center;">
+      <div style="width: 60px; height: 60px; border-radius: 50%; background: #eff6ff; color: #2563eb; display: inline-flex; align-items: center; justify-content: center; font-size: 1.6rem; margin: 0 auto 16px auto; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.15);">
+        <i class="fa-solid fa-key"></i>
+      </div>
+      <h3 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin-bottom: 8px;">Bantuan Lupa Password</h3>
+      <p style="font-size: 0.95rem; color: #475569; line-height: 1.55; margin-bottom: 20px;">
+        Jika Anda lupa password, silakan hubungi <strong>Admin / Pengurus MKTAS</strong> untuk melakukan reset password akun Anda.
+      </p>
+      <div id="lupa-pwd-action-container" style="margin-bottom: 15px;">
+        <!-- Tombol WA akan diinject via JS -->
+      </div>
+      <button type="button" class="btn btn-outline" data-close-lupa-password style="width: 100%; padding: 10px; border-radius: 30px; font-weight: 600;">
+        Tutup
+      </button>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/modules/auth.js"></script>
+  <script>
+    // Cek jika sudah login
+    const cachedUser = JSON.parse(localStorage.getItem("mktas_user") || "null");
+    if (cachedUser) {
+      if (cachedUser.is_default_password === true) {
+        document.addEventListener("DOMContentLoaded", () => {
+          showWajibGantiPasswordModal(cachedUser);
+        });
+      } else {
+        window.location.href = "dashboard.html";
+      }
+    }
+
+    // Load Logo Forum & Background Login
+    (async function loadLoginBranding() {
+      let s = JSON.parse(localStorage.getItem("mktas_settings") || "{}");
+      try {
+        if (typeof fetchAPI !== "undefined") {
+          const res = await fetchAPI("getSettings", {});
+          if (res && res.status === "success" && res.data) {
+            s = typeof mergeSettings === 'function' ? mergeSettings(s, res.data) : Object.assign(s, res.data);
+            localStorage.setItem("mktas_settings", JSON.stringify(s));
+          }
+        }
+      } catch (e) {
+        console.warn("Gagal memuat setting online:", e);
+      }
+
+      if (typeof applyWarnaSettings === 'function') {
+        applyWarnaSettings(s);
+      }
+
+      if (s.logo_forum) {
+        const logoImg = document.getElementById("login-logo-forum");
+        if (logoImg) {
+          logoImg.src = s.logo_forum;
+          logoImg.style.display = "block";
+        }
+      }
+      if (s.wilayah) {
+        const wilEl = document.getElementById("login-wilayah");
+        if (wilEl) {
+          wilEl.textContent = s.wilayah;
+          wilEl.style.display = "block";
+        }
+      }
+      if (s.bg_login) {
+        document.body.style.backgroundImage = `url('${s.bg_login}')`;
+        document.body.style.backgroundSize = "cover";
+        document.body.style.backgroundPosition = "center";
+        document.body.style.backgroundAttachment = "fixed";
+      }
+    })();
+
+    document
+      .getElementById("login-form")
+      .addEventListener("submit", function (e) {
+        e.preventDefault();
+        const user = document.getElementById("username").value;
+        const pass = document.getElementById("password").value;
+        const btn = document.getElementById("btn-login");
+
+        btn.innerHTML =
+          '<div class="loader" style="width:16px; height:16px; border-width:2px; border-top-color:white;"></div>';
+        btn.disabled = true;
+
+        handleLogin(user, pass).then((success) => {
+          if (!success) {
+            btn.innerHTML = "Masuk";
+            btn.disabled = false;
+          }
+        });
+      });
+
+    document.getElementById('toggle-password').addEventListener('click', function () {
+      const pass = document.getElementById('password');
+      if (pass.type === 'password') {
+        pass.type = 'text';
+        this.innerText = '🙈';
+      } else {
+        pass.type = 'password';
+        this.innerText = '👁️';
+      }
+    });
+
+    // Helper untuk buka URL WhatsApp di browser default / electron
+    function openWhatsAppUrl(e, url) {
+      if (e) e.preventDefault();
+      if (!url || url === "#") return;
+      if (window.api && window.api.request) {
+        window.api.request('openExternal', { url }).catch(() => {
+          window.open(url, '_blank');
+        });
+      } else {
+        window.open(url, '_blank');
+      }
+    }
+
+    // Modal / Popup Bantuan Lupa Password
+    function closeLupaPasswordModal() {
+      const modal = document.getElementById('modal-lupa-password');
+      if (modal) modal.classList.remove('active');
+    }
+
+    window.showLupaPasswordModal = function(e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+
+      const modal = document.getElementById('modal-lupa-password');
+      if (!modal) return;
+
+      let s = {};
+      try { s = JSON.parse(localStorage.getItem("mktas_settings") || "{}"); } catch(ex) {}
+
+      const rawNoHp = s.telp ?? s.no_hp ?? s.kontak_wa ?? "08345";
+      const noHp = String(rawNoHp).trim();
+      let cleanTelp = noHp.replace(/[^0-9]/g, "");
+      if (cleanTelp.startsWith("0")) cleanTelp = "62" + cleanTelp.substring(1);
+
+      const forumName = String(s.nama_forum || "MKTAS").trim() || "MKTAS";
+      const waMsg = encodeURIComponent(`Halo Admin / Pengurus ${forumName}, saya lupa password akun saya di SIM MKTAS dan ingin meminta bantuan reset password.`);
+      const waUrl = cleanTelp ? `https://wa.me/${cleanTelp}?text=${waMsg}` : "";
+
+      const container = document.getElementById('lupa-pwd-action-container');
+      if (container) {
+        if (cleanTelp) {
+          container.innerHTML = `
+            <a href="${waUrl}" target="_blank" class="btn" style="background:#25D366; color:#ffffff; font-weight:700; padding:12px 24px; border-radius:30px; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 14px rgba(37,211,102,0.35); font-size:0.95rem; width:100%;">
+              <i class="fa-brands fa-whatsapp" style="font-size:1.35rem;"></i> WhatsApp Admin
+            </a>
+            <div style="margin-top:8px; font-size:0.85rem; color:#94a3b8; font-weight:600;">(${noHp})</div>
+          `;
+        } else {
+          container.innerHTML = `
+            <div style="padding:12px; background:#fef2f2; color:#b91c1c; border-radius:8px; font-size:0.85rem; font-weight:600; border:1px solid #fecaca; text-align:left; display:flex; align-items:center; gap:8px;">
+              <i class="fa-solid fa-triangle-exclamation" style="font-size:1.1rem;"></i>
+              <span>Nomor WhatsApp admin belum diatur di sistem.</span>
+            </div>
+          `;
+        }
+      }
+
+      modal.classList.add('active');
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const trigger = document.querySelector('[data-open-lupa-password]');
+      if (trigger) trigger.addEventListener('click', function (event) { window.showLupaPasswordModal(event); });
+
+      const closeBtn = document.querySelector('[data-close-lupa-password]');
+      if (closeBtn) closeBtn.addEventListener('click', closeLupaPasswordModal);
+
+      const backdrop = document.getElementById('modal-lupa-password');
+      if (backdrop) {
+        backdrop.addEventListener('click', function (event) {
+          if (event.target === backdrop) closeLupaPasswordModal();
+        });
+      }
+    });
+
+    // --- Modal Wajib Ubah Password Saat Login Pertama Kali (Password Default 123456) ---
+    let pendingUserDefault = null;
+
+    function showWajibGantiPasswordModal(user) {
+      pendingUserDefault = user;
+      const modal = document.getElementById('modal-wajib-ganti-password-login');
+      if (modal) {
+        modal.classList.add('active');
+        setTimeout(() => {
+          const inp = document.getElementById('wajib-pass-baru-login');
+          if (inp) inp.focus();
+        }, 200);
+      }
+    }
+    window.showWajibGantiPasswordModal = showWajibGantiPasswordModal;
+
+    function togglePassViewLogin(id, btn) {
+      const inp = document.getElementById(id);
+      if (!inp) return;
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        btn.textContent = '🙈';
+      } else {
+        inp.type = 'password';
+        btn.textContent = '👁️';
+      }
+    }
+
+    async function submitWajibGantiPasswordLogin(e) {
+      if (e) e.preventDefault();
+      const user = pendingUserDefault || JSON.parse(localStorage.getItem('mktas_user') || '{}');
+      const passBaru = (document.getElementById('wajib-pass-baru-login')?.value || '').trim();
+      const passKonf = (document.getElementById('wajib-pass-konfirmasi-login')?.value || '').trim();
+      const alertBox = document.getElementById('wajib-pass-alert-login');
+      const alertText = document.getElementById('wajib-pass-alert-text-login');
+      const btn = document.getElementById('btn-submit-wajib-pass-login');
+
+      if (alertBox) alertBox.style.display = 'none';
+
+      if (passBaru.length < 6) {
+        if (alertBox && alertText) {
+          alertText.textContent = 'Password baru minimal 6 karakter.';
+          alertBox.style.display = 'block';
+        }
+        return;
+      }
+      if (passBaru === '123456') {
+        if (alertBox && alertText) {
+          alertText.textContent = 'Password baru tidak boleh menggunakan password standar (123456). Silakan buat password baru yang aman.';
+          alertBox.style.display = 'block';
+        }
+        return;
+      }
+      if (passBaru !== passKonf) {
+        if (alertBox && alertText) {
+          alertText.textContent = 'Konfirmasi password tidak sama dengan password baru.';
+          alertBox.style.display = 'block';
+        }
+        return;
+      }
+
+      const origText = btn.innerHTML;
+      btn.innerHTML = '<div class="loader" style="width:16px;height:16px;border-width:2px;border-top-color:white;display:inline-block;margin-right:8px;vertical-align:middle;"></div> Menyimpan...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetchAPI('changeUserPassword', {
+          id: user.id,
+          username: user.username,
+          new_password: passBaru
+        });
+
+        if (res && res.status === 'success') {
+          user.is_default_password = false;
+          localStorage.setItem('mktas_user', JSON.stringify(user));
+
+          await Swal.fire({
+            icon: 'success',
+            title: 'Password Berhasil Diperbarui!',
+            text: 'Password baru Anda telah aktif. Mengalihkan ke dashboard...',
+            timer: 1500,
+            showConfirmButton: false
+          });
+
+          window.location.href = 'dashboard.html';
+        } else {
+          if (alertBox && alertText) {
+            alertText.textContent = (res && res.message) ? res.message : 'Gagal memperbarui password. Silakan coba lagi.';
+            alertBox.style.display = 'block';
+          }
+        }
+      } catch (err) {
+        if (alertBox && alertText) {
+          alertText.textContent = 'Kesalahan jaringan: ' + (err.message || err);
+          alertBox.style.display = 'block';
+        }
+      } finally {
+        btn.innerHTML = origText;
+        btn.disabled = false;
+      }
+    }
+  </script>
+
+  <!-- Modal Wajib Ubah Password Default (Saat Login Pertama Kali) -->
+  <div class="modal" id="modal-wajib-ganti-password-login" style="z-index: 99999; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px);">
+    <div class="modal-content" style="max-width: 440px; border-radius: 16px; padding: 32px 28px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); border: 1px solid rgba(255,255,255,0.1);">
+      <div style="text-align: center; margin-bottom: 22px;">
+        <div style="width: 60px; height: 60px; border-radius: 50%; background: #eff6ff; color: #2563eb; display: inline-flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.15);">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h3 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin-bottom: 6px;">Wajib Ganti Password</h3>
+        <p style="font-size: 0.88rem; color: #64748b; line-height: 1.55; margin: 0 auto;">
+          Akun Anda terdeteksi masih menggunakan password default <strong>(123456)</strong>. Demi keamanan, silakan buat password baru Anda sebelum masuk ke dashboard.
+        </p>
+      </div>
+
+      <form id="form-wajib-pass-login" onsubmit="submitWajibGantiPasswordLogin(event)">
+        <!-- Kolom Password Baru -->
+        <div class="form-group" style="margin-bottom: 16px; text-align: left;">
+          <label style="font-weight: 600; font-size: 0.88rem; display: block; margin-bottom: 6px; color: #334155;">
+            Password Baru <span style="color: #ef4444;">*</span>
+          </label>
+          <div style="position: relative;">
+            <input type="password" id="wajib-pass-baru-login" class="form-control" required placeholder="Minimal 6 karakter..." style="padding-right: 42px;" autocomplete="new-password" />
+            <button type="button" onclick="togglePassViewLogin('wajib-pass-baru-login', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #94a3b8; font-size: 1.1rem; padding: 4px;">
+              👁️
+            </button>
+          </div>
+        </div>
+
+        <!-- Kolom Ulangi Password -->
+        <div class="form-group" style="margin-bottom: 18px; text-align: left;">
+          <label style="font-weight: 600; font-size: 0.88rem; display: block; margin-bottom: 6px; color: #334155;">
+            Ulangi Password Baru <span style="color: #ef4444;">*</span>
+          </label>
+          <div style="position: relative;">
+            <input type="password" id="wajib-pass-konfirmasi-login" class="form-control" required placeholder="Ketik ulang password baru..." style="padding-right: 42px;" autocomplete="new-password" />
+            <button type="button" onclick="togglePassViewLogin('wajib-pass-konfirmasi-login', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #94a3b8; font-size: 1.1rem; padding: 4px;">
+              👁️
+            </button>
+          </div>
+        </div>
+
+        <!-- Alert Error Message -->
+        <div id="wajib-pass-alert-login" style="display: none; background: #fef2f2; color: #b91c1c; padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 16px; border: 1px solid #fecaca; line-height: 1.4; text-align: left;">
+          <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i> <span id="wajib-pass-alert-text-login"></span>
+        </div>
+
+        <button type="submit" id="btn-submit-wajib-pass-login" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: 700; border-radius: 8px; font-size: 0.95rem; justify-content: center;">
+          <i class="fa-solid fa-key" style="margin-right: 6px;"></i> Simpan & Masuk ke Dashboard
+        </button>
+      </form>
+    </div>
+  </div>
+</body>
+
+</html>

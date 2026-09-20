@@ -1,0 +1,2596 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Dashboard - Portal MKTAS</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script>
+    (function () {
+      try {
+        var s = JSON.parse(localStorage.getItem('mktas_settings') || '{}');
+        var r = document.documentElement;
+        var p = s.warna_primer || '#6366f1';
+        var h = s.warna_hover || '#4f46e5';
+        var a1 = s.warna_aksen1 || '#10b981';
+        var a2 = s.warna_aksen2 || '#ec4899';
+        r.style.setProperty('--primary-color', p);
+        r.style.setProperty('--primary-hover', h);
+        r.style.setProperty('--accent-color', a1);
+        r.style.setProperty('--secondary-color', a2);
+        r.style.setProperty('--gradient-primary', 'linear-gradient(135deg, ' + p + ' 0%, ' + a2 + ' 100%)');
+        r.style.setProperty('--gradient-hover', 'linear-gradient(135deg, ' + h + ' 0%, ' + a1 + ' 100%)');
+        r.style.setProperty('--gradient-sidebar', 'linear-gradient(180deg, ' + p + ' 0%, ' + a2 + ' 100%)');
+        r.style.setProperty('--gradient-accent', 'linear-gradient(135deg, ' + p + ' 0%, ' + a1 + ' 100%)');
+        r.style.setProperty('--gradient-text', 'linear-gradient(135deg, ' + p + ' 0%, ' + a2 + ' 100%)');
+      } catch (e) { }
+    })();
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    .section-content {
+      display: none;
+    }
+
+    .section-content.active {
+      display: block;
+    }
+  </style>
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+  <!-- Leaflet — peta koordinat sekolah -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+</head>
+
+<body>
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <a href="#" class="brand" style="flex-direction: row; align-items: center; justify-content: flex-start; text-align: left; gap: 12px;">
+        <img id="sidebar-logo" src="" alt="Logo" style="width: 50px; height: 50px; object-fit: contain; display: none;">
+        <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.1;">
+          <span style="font-size: 1.5rem; font-weight: 700;">MKTAS</span>
+          <small id="sidebar-wilayah" style="font-size: 0.8rem; font-weight: normal; color: rgba(255,255,255,0.85);"></small>
+        </div>
+      </a>
+
+      <ul class="sidebar-menu">
+        <li><a href="#" class="nav-item active" data-target="home"><i style="margin-right: 10px;">🏠</i> Beranda</a>
+        </li>
+        <li id="menu-sekolah" class="hidden"><a href="#" class="nav-item" data-target="sekolah"><i
+              style="margin-right: 10px;">🏫</i> Master Data</a></li>
+        <li><a href="#" class="nav-item" data-target="jadwal"><i style="margin-right: 10px;">📅</i> Jadwal MKTAS</a>
+        </li>
+        <li><a href="#" class="nav-item" data-target="laporan"><i style="margin-right: 10px;">📄</i> Laporan</a></li>
+        <li><a href="#" class="nav-item" data-target="webpublik"><i style="margin-right: 10px;">🌐</i> Web Publik</a>
+        </li>
+        <li><a href="#" class="nav-item" data-target="galeri"><i style="margin-right: 10px;">🖼️</i> Galeri</a></li>
+        <li id="menu-pengaturan" class="hidden"><a href="#" class="nav-item" data-target="pengaturan"><i
+              style="margin-right: 10px;">⚙️</i> Pengaturan</a></li>
+        <li style="margin-top: auto"><a href="#" id="btn-logout"><i style="margin-right: 10px;">🚪</i> Keluar</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <header class="top-bar">
+
+        <!-- KIRI: Logo + Nama Aplikasi + Username (hanya mobile) -->
+        <div class="topbar-brand-mobile">
+          <img id="topbar-logo-mobile" src="" alt="Logo"
+            style="width:32px;height:32px;object-fit:contain;display:none;border-radius:6px;flex-shrink:0;" />
+          <svg id="topbar-logo-svg-mobile" width="32" height="32" viewBox="0 0 24 24" fill="none"
+            stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            style="flex-shrink:0;">
+            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+          </svg>
+          <div style="display:flex;flex-direction:column;justify-content:center;line-height:1.15;overflow:hidden;">
+            <span id="topbar-appname-mobile"
+              style="font-size:0.88rem;font-weight:700;color:var(--text-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Portal
+              MKTAS</span>
+            <span id="topbar-username-mobile"
+              style="font-size:0.68rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></span>
+          </div>
+        </div>
+
+        <!-- TENGAH: Judul halaman (desktop) -->
+        <div class="topbar-page-title-shell">
+          <h2 id="page-title" class="topbar-page-title-desktop">Beranda</h2>
+        </div>
+
+        <!-- KANAN: Tombol aksi -->
+        <div class="topbar-actions" style="display: flex; align-items: center; gap: 10px; flex-shrink:0;">
+
+          <button id="btn-user-profile" type="button" onclick="openModalProfilUser()"
+            style="display: flex; align-items: center; gap: 10px; background: rgba(255, 255, 255, 0.75); border: 1px solid var(--border-color); padding: 4px 12px 4px 6px; border-radius: 30px; cursor: pointer; transition: var(--transition); box-shadow: 0 2px 8px rgba(0,0,0,0.04);"
+            title="Klik untuk Kelola Profil &amp; Password">
+            <div id="user-initial"
+              style="width: 34px; height: 34px; border-radius: 50%; background: var(--gradient-primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.95rem;">
+              A</div>
+            <div style="display: flex; flex-direction: column; text-align: left; line-height: 1.15;">
+              <span id="user-info" style="font-weight: 600; font-size: 0.9rem; color: var(--text-dark);"></span>
+              <small id="user-role-badge" style="font-size: 0.72rem; color: var(--text-muted);"></small>
+            </div>
+            <i class="fa-solid fa-chevron-down"
+              style="font-size: 0.7rem; color: var(--text-muted); margin-left: 4px;"></i>
+          </button>
+
+          <button id="btn-logout-desktop" type="button" onclick="logout()" title="Keluar"
+            style="display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; border: 1px solid var(--border-color); border-radius: 50%; background: rgba(255,255,255,0.8); color: var(--text-dark); cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: var(--transition);">
+            <i class="fa-solid fa-right-from-bracket" style="font-size: 0.95rem;"></i>
+          </button>
+
+          <!-- Tombol Keluar Mobile (hanya tampil di HP) -->
+          <button class="btn-mobile-logout" onclick="logout()" title="Keluar">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Sections -->
+      <section id="section-home" class="section-content active">
+        <!-- Welcome & Quote Box -->
+        <div class="glass-panel" style="padding: 30px; margin-bottom: 20px;">
+          <h3 style="font-size: 1.5rem; margin-bottom: 10px">
+            Selamat Datang, <span id="welcome-name"></span>!
+          </h3>
+          <p style="color: var(--text-muted); margin-bottom: 20px;">
+            Anda masuk sebagai
+            <span id="welcome-role" style="font-weight: bold; color: var(--primary-color)"></span>.
+          </p>
+          <div
+            style="background: rgba(var(--primary-rgb), 0.05); border-left: 4px solid var(--primary-color); padding: 15px 20px; border-radius: 4px; font-style: italic; color: var(--text-dark);">
+            <p id="motivational-quote" style="margin: 0; font-size: 1.05rem;">
+              "Teruslah bersemangat dan ciptakan karya terbaik hari ini!"
+            </p>
+          </div>
+        </div>
+
+        <!-- Dashboard Stats Cards -->
+        <div id="dashboard-stats-cards"
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 20px; margin-bottom: 20px;">
+          <div
+            style="padding: 20px; text-align: center; background: rgba(255,255,255,0.9); border: 1px solid rgba(148,163,184,0.25); border-radius: 16px; color: var(--text-dark); box-shadow: 0 8px 20px rgba(15,23,42,0.06);">
+            <div style="font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">🏫 Total Sekolah</div>
+            <div id="stat-total-sekolah" style="font-size: 2rem; font-weight: 800; line-height: 1; color: var(--primary-color);">-</div>
+          </div>
+          <div
+            style="padding: 20px; text-align: center; background: rgba(255,255,255,0.9); border: 1px solid rgba(148,163,184,0.25); border-radius: 16px; color: var(--text-dark); box-shadow: 0 8px 20px rgba(15,23,42,0.06);">
+            <div style="font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">👥 Total Pegawai</div>
+            <div id="stat-total-pegawai" style="font-size: 2rem; font-weight: 800; line-height: 1; color: var(--primary-color);">-</div>
+          </div>
+          <div
+            style="padding: 20px; text-align: center; background: rgba(255,255,255,0.9); border: 1px solid rgba(148,163,184,0.25); border-radius: 16px; color: var(--text-dark); box-shadow: 0 8px 20px rgba(15,23,42,0.06);">
+            <div style="font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">✅ Terlaksana</div>
+            <div id="stat-jadwal-terlaksana" style="font-size: 2rem; font-weight: 800; line-height: 1; color: #10b981;">-</div>
+          </div>
+          <div
+            style="padding: 20px; text-align: center; background: rgba(255,255,255,0.9); border: 1px solid rgba(148,163,184,0.25); border-radius: 16px; color: var(--text-dark); box-shadow: 0 8px 20px rgba(15,23,42,0.06);">
+            <div style="font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">⏳ Belum</div>
+            <div id="stat-jadwal-belum" style="font-size: 2rem; font-weight: 800; line-height: 1; color: #f59e0b;">-</div>
+          </div>
+        </div>
+
+        <!-- Dashboard Charts Grid -->
+        <div id="dashboard-charts-container"
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+          <div class="glass-panel" style="padding: 20px;">
+            <h4 style="margin-bottom: 15px; font-size: 1.1rem; text-align: center;">Status Jadwal</h4>
+            <div style="position: relative; height: 250px; width: 100%;">
+              <canvas id="chartJadwal"></canvas>
+            </div>
+          </div>
+          <div class="glass-panel" style="padding: 20px;">
+            <h4 style="margin-bottom: 15px; font-size: 1.1rem; text-align: center;">Status Pegawai</h4>
+            <div style="position: relative; height: 250px; width: 100%;">
+              <canvas id="chartPegawai"></canvas>
+            </div>
+          </div>
+          <div id="chart-laporan-container" class="glass-panel" style="padding: 20px; display: none;">
+            <h4 style="margin-bottom: 15px; font-size: 1.1rem; text-align: center;">Laporan Uploads (Tahun Ini)</h4>
+            <div style="position: relative; height: 250px; width: 100%;">
+              <canvas id="chartLaporan"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="section-sekolah" class="section-content">
+        <div class="glass-panel" style="padding: 30px">
+
+          <div class="tabs-nav" style="margin-bottom: 25px;">
+            <button class="tab-item active" onclick="switchMasterDataTab('sekolah', this)">Data Sekolah</button>
+            <button class="tab-item" onclick="switchMasterDataTab('pegawai', this)">Data Pegawai</button>
+          </div>
+
+          <!-- Tab Sekolah -->
+          <div id="master-tab-sekolah" class="tab-content active" style="display: block;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+              <input type="text" id="search-sekolah" class="form-control" placeholder="Cari nama sekolah..."
+                style="max-width: 300px;" onkeyup="filterSekolah()">
+              <div>
+                <button class="btn btn-outline btn-import-school" style="margin-right: 10px;">Import Sekolah</button>
+                <button class="btn btn-primary btn-add-school">Tambah Sekolah</button>
+              </div>
+            </div>
+            <div class="table-container">
+              <table id="table-sekolah">
+                <thead>
+                  <tr>
+                    <th>Sekolah & NPSN</th>
+                    <th>Kecamatan</th>
+                    <th>Admin & No. WA</th>
+                    <th style="width: 250px;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+              <div id="pagination-sekolah"
+                style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px;">
+                <button class="btn btn-sm btn-outline" onclick="changeSekolahPage(-1)" id="btn-sekolah-prev">&larr;
+                  Prev</button>
+                <span id="text-sekolah-page" style="font-size: 0.9rem; font-weight: bold;">Page 1</span>
+                <button class="btn btn-sm btn-outline" onclick="changeSekolahPage(1)" id="btn-sekolah-next">Next
+                  &rarr;</button>
+              </div>
+              <div id="loader-sekolah" class="loader mt-4 hidden"></div>
+            </div>
+          </div>
+
+          <!-- Tab Pegawai -->
+          <div id="master-tab-pegawai" class="tab-content" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 12px; flex-wrap: wrap;">
+              <h3>Daftar Pegawai TAS Global</h3>
+              <button class="btn btn-outline" onclick="exportPegawaiExcel()" style="display:inline-flex; align-items:center; gap:8px;">
+                <i class="fas fa-file-excel"></i> Unduh Excel
+              </button>
+            </div>
+
+            <!-- Filters -->
+            <div class="grid-2-col" style="margin-bottom: 20px;">
+              <div class="form-group">
+                <input type="text" id="filter-pegawai-search" class="form-control" placeholder="Cari Nama / NIP..."
+                  onkeyup="filterPegawaiTable()" />
+              </div>
+              <div class="form-group">
+                <select id="filter-pegawai-sekolah" class="form-control" onchange="filterPegawaiTable()">
+                  <option value="">-- Semua Sekolah --</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <select id="filter-pegawai-status" class="form-control" onchange="filterPegawaiTable()">
+                  <option value="">-- Semua Status Pegawai --</option>
+                  <option value="PNS">PNS</option>
+                  <option value="PPPK">PPPK</option>
+                  <option value="PPPK PW">PPPK PW</option>
+                  <option value="Non ASN">Non ASN</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <select id="filter-pegawai-jabatan" class="form-control" onchange="filterPegawaiTable()">
+                  <option value="">-- Semua Jabatan Tugas --</option>
+                  <option value="Kepala/Kasubbag TU">Kepala/Kasubbag TU</option>
+                  <option value="Koordinator TAS">Koordinator TAS</option>
+                  <option value="Staf Adm. Kepegawaian">Staf Adm. Kepegawaian</option>
+                  <option value="Staf Adm. Kesiswaan">Staf Adm. Kesiswaan</option>
+                  <option value="Staf Adm. Keuangan">Staf Adm. Keuangan</option>
+                  <option value="Staf Adm. Kurikulum">Staf Adm. Kurikulum</option>
+                  <option value="Staf Adm. Sarpras">Staf Adm. Sarpras</option>
+                  <option value="Staf Adm. Persuratan">Staf Adm. Persuratan</option>
+                  <option value="Operator">Operator</option>
+                  <option value="Laboran">Laboran</option>
+                  <option value="Pustakawan">Pustakawan</option>
+                  <option value="Penjaga Sekolah">Penjaga Sekolah</option>
+                  <option value="Satpam">Satpam</option>
+                  <option value="Pramusaji">Pramusaji</option>
+                  <option value="Toolman">Toolman</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <table id="table-pegawai">
+                <thead>
+                  <tr>
+                    <th>Pegawai</th>
+                    <th>Jabatan</th>
+                    <th>Nama Sekolah</th>
+                    <th>Status</th>
+                    <th>No WA</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-pegawai">
+                  <!-- Data will be loaded here -->
+                </tbody>
+              </table>
+              <div id="loader-pegawai" class="loader mt-4 hidden"></div>
+            </div>
+
+            <!-- Pagination -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+              <button class="btn btn-outline" id="btn-pegawai-prev" onclick="changePegawaiPage(-1)">Previous</button>
+              <span id="text-pegawai-page" style="color: var(--text-muted); font-weight: 500;">Page 1 of 1</span>
+              <button class="btn btn-outline" id="btn-pegawai-next" onclick="changePegawaiPage(1)">Next</button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- View Inline: Daftar Pegawai per Sekolah (di luar section tapi di dalam section-sekolah area) -->
+      <section id="section-sekolah-pegawai" class="section-content" style="display:none;">
+        <div class="glass-panel" style="padding: 30px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div style="display: flex; gap: 15px; align-items: center;">
+              <button class="btn btn-outline" onclick="tutupPegawaiSekolahPage()" style="padding: 6px 12px;">&larr;
+                Kembali ke Data Sekolah</button>
+              <h3 id="judul-pegawai-sekolah">Daftar Pegawai TAS</h3>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <button class="btn btn-outline"
+                onclick="showModal('modal-import-pegawai')"
+                style="display: flex; align-items: center; gap: 6px;">
+                <i class="fas fa-file-excel"></i> Import Excel
+              </button>
+              <button class="btn btn-primary" id="btn-tambah-pegawai-sekolah">
+                <i class="fas fa-plus"></i> Tambah Pegawai
+              </button>
+            </div>
+          </div>
+          <div class="table-container" id="wrapper-pegawai-sekolah-inline"
+            style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+            <table id="table-pegawai-sekolah-inline">
+              <thead>
+                <tr>
+                  <th>Nama &amp; NIP</th>
+                  <th>Jabatan Tugas</th>
+                  <th>No. WA</th>
+                  <th style="width: 150px; text-align: center;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+            <div id="loader-pegawai-sekolah-inline" class="loader mt-4 hidden"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Modal Import Excel Pegawai -->
+      <div class="modal" id="modal-import-pegawai">
+        <div class="modal-content" style="max-width: 520px;">
+          <div class="modal-header">
+            <h3><i class="fas fa-file-excel" style="color:#10b981;"></i> Import Pegawai dari Excel</h3>
+            <button class="close-btn"
+              onclick="closeModal('modal-import-pegawai')">&times;</button>
+          </div>
+          <div style="padding: 10px 0 20px;">
+            <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.9rem;">
+              Upload file Excel (.xlsx/.xls) dengan kolom berikut:<br>
+              <code
+                style="font-size:0.8rem;">nama, nip, jabatan_tugas, jabatan_sk, status_pegawai, pangkat_gol, no_wa, email, tempat_lahir, tgl_lahir, pendidikan_terakhir</code>
+            </p>
+            <div style="margin-bottom: 16px;">
+              <button class="btn btn-outline" onclick="unduhTemplatePegawai()"
+                style="width:100%; justify-content:center; gap:8px; display:flex; align-items:center;">
+                <i class="fas fa-download"></i> Unduh Template Excel
+              </button>
+            </div>
+            <div class="form-group">
+              <label>Pilih File Excel</label>
+              <input type="file" id="import-pegawai-file" class="form-control" accept=".xlsx,.xls,.csv" />
+            </div>
+            <div style="display:flex; gap:10px; margin-top:16px;">
+              <button class="btn btn-primary" style="flex:1;" onclick="prosesImportPegawaiExcel()"><i
+                  class="fas fa-upload"></i> Import</button>
+              <button class="btn btn-outline" style="flex:1;"
+                onclick="closeModal('modal-import-pegawai')">Batal</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+
+      <section id="section-jadwal" class="section-content">
+        <div class="glass-panel" style="padding: 30px">
+
+          <!-- View 1: Grid Tahun -->
+          <div id="jadwal-view-tahun">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+              <h3>Jadwal MKTAS - Pilih Tahun</h3>
+              <button class="btn btn-primary btn-add-year" id="btn-add-year-ui">Tambah Tahun</button>
+            </div>
+            <div id="grid-tahun" class="card-grid" style="margin-top: 20px;">
+              <!-- Kotak Tahun akan dirender di sini -->
+            </div>
+            <div id="loader-tahun" class="loader mt-4 hidden"></div>
+          </div>
+
+          <!-- View 2: Tabel Jadwal -->
+          <div id="jadwal-view-tabel" class="hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+              <div style="display: flex; gap: 15px; align-items: center;">
+                <button class="btn btn-outline" onclick="showJadwalView('tahun')" style="padding: 6px 12px;">&larr;
+                  Kembali</button>
+                <h3 id="judul-tabel-jadwal">Jadwal Tahun XXXX</h3>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="search-jadwal" class="form-control" placeholder="Cari tuan rumah..."
+                  style="width: 250px;" onkeyup="filterJadwal()">
+                <button class="btn btn-primary btn-add-schedule hidden" id="btn-add-schedule-ui">
+                  Tambah Jadwal
+                </button>
+              </div>
+            </div>
+            <div class="table-container">
+              <div id="jadwal-table-wrapper">
+                <table id="table-jadwal">
+                  <thead>
+                    <tr>
+                      <th>Tuan Rumah</th>
+                      <th>Bulan</th>
+                      <th>Tanggal</th>
+                      <th>Keterangan</th>
+                      <th style="width: 250px;">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+              </div>
+              <div id="pagination-jadwal"
+                style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px;">
+                <button class="btn btn-sm btn-outline" onclick="changeJadwalPage(-1)" id="btn-jadwal-prev">&larr;
+                  Prev</button>
+                <span id="text-jadwal-page" style="font-size: 0.9rem; font-weight: bold;">Page 1</span>
+                <button class="btn btn-sm btn-outline" onclick="changeJadwalPage(1)" id="btn-jadwal-next">Next
+                  &rarr;</button>
+              </div>
+              <div id="loader-jadwal" class="loader mt-4 hidden"></div>
+            </div>
+          </div>
+
+          <!-- View 3: Detail Jadwal (Kehadiran Sekolah) -->
+          <div id="jadwal-view-detail" class="hidden">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+              <div style="display: flex; gap: 15px; align-items: center;">
+                <button class="btn btn-outline" onclick="showJadwalView('tabel')" style="padding: 6px 12px;">&larr;
+                  Kembali</button>
+                <h3 id="judul-detail-jadwal">Detail Pelaksanaan - Kehadiran</h3>
+              </div>
+              <button class="btn btn-primary" onclick="bukaPratinjauPDF()">
+                <i class="fas fa-print"></i> Cetak Daftar Hadir
+              </button>
+            </div>
+
+            <div style="margin-top: 20px;">
+              <div class="detail-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                  <p style="color: var(--text-muted); margin: 0;">Pilih sekolah untuk mengatur kehadiran masing-masing
+                    pegawai.</p>
+                  <div style="display: flex; gap: 10px; align-items: center;">
+                    <select id="filter-kehadiran-status" class="form-control" style="width: 150px; padding: 6px;"
+                      onchange="filterKehadiran()">
+                      <option value="all">Semua Status</option>
+                      <option value="hadir">Hadir</option>
+                      <option value="tidak_hadir">Tidak Hadir</option>
+                    </select>
+                    <input type="text" id="search-kehadiran" class="form-control" placeholder="Cari nama sekolah..."
+                      style="width: 250px; padding: 6px;" onkeyup="filterKehadiran()">
+                  </div>
+                </div>
+                <div class="table-container">
+                  <table id="table-kehadiran">
+                    <thead>
+                      <tr>
+                        <th>Nama Sekolah</th>
+                        <th style="width: 150px; text-align: center;">Status Kehadiran</th>
+                        <th style="width: 150px; text-align: center;">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                  </table>
+                  <div id="pagination-kehadiran"
+                    style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px;">
+                    <button class="btn btn-sm btn-outline" onclick="changeKehadiranPage(-1)"
+                      id="btn-kehadiran-prev">&larr; Prev</button>
+                    <span id="text-kehadiran-page" style="font-size: 0.9rem; font-weight: bold;">Page 1</span>
+                    <button class="btn btn-sm btn-outline" onclick="changeKehadiranPage(1)" id="btn-kehadiran-next">Next
+                      &rarr;</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="section-laporan" class="section-content">
+        <div class="glass-panel" style="padding: 30px">
+
+          <!-- View Laporan: Daftar Jadwal -->
+          <div id="laporan-view-tabel">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+              <div>
+                <h3>Laporan Pelaksanaan Jadwal</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">Daftar jadwal MKTAS
+                  (terlaksana/aktif) beserta dokumen pendukungnya.</p>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <select id="filter-laporan-tahun" class="form-control" style="width: 120px; padding: 6px;"
+                  onchange="filterLaporan()">
+                  <option value="">Semua Tahun</option>
+                </select>
+                <select id="filter-laporan-bulan" class="form-control" style="width: 150px; padding: 6px;"
+                  onchange="filterLaporan()">
+                  <option value="">Semua Bulan</option>
+                  <option value="Januari">Januari</option>
+                  <option value="Februari">Februari</option>
+                  <option value="Maret">Maret</option>
+                  <option value="April">April</option>
+                  <option value="Mei">Mei</option>
+                  <option value="Juni">Juni</option>
+                  <option value="Juli">Juli</option>
+                  <option value="Agustus">Agustus</option>
+                  <option value="September">September</option>
+                  <option value="Oktober">Oktober</option>
+                  <option value="November">November</option>
+                  <option value="Desember">Desember</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-container">
+              <table id="table-laporan">
+                <thead>
+                  <tr>
+                    <th>Tahun</th>
+                    <th>Bulan</th>
+                    <th>Tuan Rumah</th>
+                    <th>Tanggal</th>
+                    <th style="width: 150px; text-align: center;">Dokumen</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+              <div id="pagination-laporan"
+                style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px;">
+                <button class="btn btn-sm btn-outline" onclick="changeLaporanPage(-1)" id="btn-laporan-prev">&larr;
+                  Prev</button>
+                <span id="text-laporan-page" style="font-size: 0.9rem; font-weight: bold;">Page 1</span>
+                <button class="btn btn-sm btn-outline" onclick="changeLaporanPage(1)" id="btn-laporan-next">Next
+                  &rarr;</button>
+              </div>
+              <div id="loader-laporan" class="loader mt-4 hidden"></div>
+            </div>
+          </div>
+
+          <!-- View Laporan: Detail -->
+          <div id="laporan-view-detail" class="hidden">
+            <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 25px;">
+              <button class="btn btn-outline" onclick="showLaporanView('tabel')" style="padding: 6px 12px;">&larr;
+                Kembali</button>
+              <h3 id="judul-laporan-detail">Detail Laporan</h3>
+            </div>
+
+            <div class="tabs-nav" style="margin-bottom: 25px;">
+              <button class="tab-item active" onclick="switchLaporanTab('rekap', this)">Rekap Kehadiran</button>
+              <button class="tab-item" onclick="switchLaporanTab('dokumen', this)">Dokumen Pelaksanaan</button>
+            </div>
+
+            <!-- Tab Rekap Kehadiran -->
+            <div id="laporan-tab-rekap" class="tab-content active" style="display: block;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 18px;">
+                <div id="laporan-rekap-header-info" style="display: flex; flex-direction: column; gap: 4px; color: var(--text-muted); font-size: 0.92rem;">
+                  <div><strong>Sekolah Tuan Rumah:</strong> <span id="laporan-rekap-sekolah">-</span></div>
+                  <div><strong>Tanggal Kegiatan:</strong> <span id="laporan-rekap-tanggal">-</span></div>
+                </div>
+                <button class="btn btn-primary" onclick="bukaPratinjauRekapPDF()">
+                  <i class="fas fa-print"></i> Cetak PDF
+                </button>
+              </div>
+              <div class="table-container">
+                <table id="table-laporan-rekap">
+                  <thead>
+                    <tr>
+                      <th>Nama & NIP</th>
+                      <th>Jabatan Tugas</th>
+                      <th>Asal Sekolah</th>
+                      <th style="width: 150px; text-align: center;">Status Hadir</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+                <div id="loader-laporan-rekap" class="loader mt-4 hidden"></div>
+              </div>
+            </div>
+
+            <!-- Tab Dokumen Pelaksanaan -->
+            <div id="laporan-tab-dokumen" class="tab-content" style="display: none;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                <!-- Panel Upload Dokumen -->
+                <div class="detail-panel" id="panel-upload-laporan">
+                  <h4>Upload Dokumen Baru</h4>
+                  <form id="form-upload-laporan" style="margin-top: 15px;">
+                    <div class="form-group">
+                      <label>Jenis Dokumen</label>
+                      <select id="upload-laporan-jenis" class="form-control" required>
+                        <option value="Undangan">1. Undangan</option>
+                        <option value="Absensi">2. Absensi</option>
+                        <option value="Berita Acara / Notulen">3. Berita Acara / Notulen</option>
+                        <option value="Foto Kegiatan">4. Foto Kegiatan</option>
+                        <option value="Dokumen Lainnya">5. Dokumen Lainnya</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Pilih File</label>
+                      <input type="file" id="upload-laporan-file" class="form-control" style="padding: 9px;" required />
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%">Upload File</button>
+                  </form>
+                </div>
+
+                <!-- Panel Daftar Dokumen -->
+                <div class="detail-panel">
+                  <h4>Dokumen Terunggah</h4>
+                  <ul style="list-style: none; padding: 0; margin-top: 15px;" id="list-dokumen-laporan">
+                    <!-- Rendered by JS -->
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+
+
+      <section id="section-pengaturan" class="section-content">
+        <div class="glass-panel" style="padding: 30px">
+          <h3 style="margin-bottom: 20px;">Pengaturan Sistem</h3>
+
+          <div class="tabs-nav" style="margin-bottom: 25px;">
+            <button class="tab-item active" onclick="switchPengaturanTab('sistem', this)">Sistem</button>
+            <button class="tab-item" onclick="switchPengaturanTab('logo', this)">Logo &amp; Warna</button>
+            <button class="tab-item" onclick="switchPengaturanTab('akun', this)">Kelola Akun</button>
+            <button class="tab-item" onclick="switchPengaturanTab('legalitas', this)">Data &amp; Legalitas</button>
+            <button id="tab-backup-restore" class="tab-item" onclick="switchPengaturanTab('backup', this)">Backup &amp; Restore</button>
+          </div>
+
+          <!-- Tab Sistem -->
+          <div id="pengaturan-tab-sistem" class="tab-content active" style="display: block;">
+            <form id="form-pengaturan-sistem">
+              <div class="grid-2-col" style="margin-bottom: 15px;">
+                <div class="form-group">
+                  <label>Nama Forum</label>
+                  <input type="text" class="form-control" id="pengaturan-nama" placeholder="Nama Forum" />
+                </div>
+                <div class="form-group">
+                  <label>Singkatan Forum</label>
+                  <input type="text" class="form-control" id="pengaturan-singkatan" placeholder="Mis: MKTAS" />
+                </div>
+              </div>
+              <div class="grid-2-col" style="margin-bottom: 15px;">
+                <div class="form-group">
+                  <label>Wilayah Kab/Kota &amp; Provinsi</label>
+                  <input type="text" class="form-control" id="pengaturan-wilayah"
+                    placeholder="Mis: Kab. Bandung, Jawa Barat" />
+                  <small style="color: var(--text-muted); font-size:0.8rem;">Tampil di bawah nama forum pada halaman web
+                    publik</small>
+                </div>
+                <div class="form-group">
+                  <label>Alamat Sekretariat</label>
+                  <input type="text" class="form-control" id="pengaturan-alamat" />
+                </div>
+              </div>
+              <div class="grid-2-col" style="margin-bottom: 15px;">
+                <div class="form-group">
+                  <label>No HP / Telp</label>
+                  <input type="text" class="form-control" id="pengaturan-telp" />
+                </div>
+                <div class="form-group">
+                  <label>Email</label>
+                  <input type="email" class="form-control" id="pengaturan-email" />
+                </div>
+              </div>
+
+              <div class="grid-2-col" style="margin-bottom: 25px;">
+                <div class="form-group">
+                  <label>Website</label>
+                  <input type="url" class="form-control" id="pengaturan-web" placeholder="https://" />
+                </div>
+                <div class="form-group">
+                  <label>Titik Koordinat Sekretariat (Maps)</label>
+                  <div class="map-picker-input-group">
+                    <input type="text" class="form-control" id="pengaturan-maps"
+                      placeholder="Contoh: -7.250445, 112.768845" style="font-family:monospace;" />
+                    <button type="button" class="btn btn-outline" style="white-space:nowrap;padding:8px 14px;"
+                      onclick="openMapPicker('pengaturan-maps')">&#x1F4CD; Pilih di Peta</button>
+                  </div>
+                  <small style="color: var(--text-muted); font-size:0.8rem;">Peta akan otomatis muncul di bagian bawah
+                    halaman
+                    web publik.</small>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 25px;">
+                <label><i class="fa-solid fa-cloud" style="color:var(--primary-color, #6366f1);margin-right:6px;"></i>
+                  URL Deployment Web App Google Apps Script (Versi Online)</label>
+                <input type="url" class="form-control" id="pengaturan-apps-script-url"
+                  placeholder="https://script.google.com/macros/s/AKfycb.../exec"
+                  style="font-family:monospace;font-size:0.9rem;" />
+                <small style="color: var(--text-muted); font-size:0.8rem; display:block; margin-top:4px;">
+                  Masukkan URL Web App dari Google Apps Script Anda. URL ini digunakan sebagai backend data online
+                  (Google Sheets) &amp; sinkronisasi saat aplikasi diakses lewat web browser.
+                </small>
+              </div>
+
+              <button type="button" class="btn btn-primary" onclick="savePengaturanSistem()"><i class="fas fa-save"></i>
+                Simpan Pengaturan</button>
+            </form>
+          </div>
+
+          <!-- Tab Logo & Warna -->
+          <div id="pengaturan-tab-logo" class="tab-content" style="display: none;">
+            <form id="form-pengaturan-logo">
+              <div class="grid-2-col" style="margin-bottom: 15px;">
+                <div class="form-group">
+                  <label>Logo Instansi (1:1)</label>
+                  <input type="file" id="logo-instansi-file" class="form-control" accept="image/*" />
+                  <input type="hidden" id="logo-instansi-url" />
+                  <img id="preview-logo-instansi"
+                    style="display:none; max-width: 100px; margin-top: 10px; border-radius: 4px;" />
+                </div>
+                <div class="form-group">
+                  <label>Logo Forum (1:1)</label>
+                  <input type="file" id="logo-forum-file" class="form-control" accept="image/*" />
+                  <input type="hidden" id="logo-forum-url" />
+                  <img id="preview-logo-forum"
+                    style="display:none; max-width: 100px; margin-top: 10px; border-radius: 4px;" />
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom: 25px;">
+                <label>Background Halaman Login (5:3)</label>
+                <input type="file" id="bg-login-file" class="form-control" accept="image/*" />
+                <input type="hidden" id="bg-login-url" />
+                <img id="preview-bg-login"
+                  style="display:none; max-width: 200px; margin-top: 10px; border-radius: 4px;" />
+              </div>
+
+              <h4 style="margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Tema
+                & Warna</h4>
+              <div class="color-picker-grid-4">
+                <div class="color-picker-item">
+                  <label title="Warna Primer">Primer</label>
+                  <input type="color" id="warna-primer" class="form-control color-input-compact" value="#4f46e5"
+                    oninput="previewWarnaRealtime()" onchange="previewWarnaRealtime()" />
+                </div>
+                <div class="color-picker-item">
+                  <label title="Warna Hover Primer">Hover</label>
+                  <input type="color" id="warna-hover" class="form-control color-input-compact" value="#4338ca"
+                    oninput="previewWarnaRealtime()" onchange="previewWarnaRealtime()" />
+                </div>
+                <div class="color-picker-item">
+                  <label title="Warna Aksen 1">Aksen 1</label>
+                  <input type="color" id="warna-aksen1" class="form-control color-input-compact" value="#10b981"
+                    oninput="previewWarnaRealtime()" onchange="previewWarnaRealtime()" />
+                </div>
+                <div class="color-picker-item">
+                  <label title="Warna Aksen 2">Aksen 2</label>
+                  <input type="color" id="warna-aksen2" class="form-control color-input-compact" value="#8b5cf6"
+                    oninput="previewWarnaRealtime()" onchange="previewWarnaRealtime()" />
+                </div>
+              </div>
+
+              <button type="button" class="btn btn-primary" onclick="savePengaturanLogo()"><i class="fas fa-save"></i>
+                Simpan Logo &amp; Warna</button>
+            </form>
+          </div>
+
+          <!-- Tab Kelola Akun -->
+          <div id="pengaturan-tab-akun" class="tab-content" style="display: none;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+              <h3>Daftar Akun Admin</h3>
+              <button class="btn btn-primary"
+                onclick="showModal('modal-admin')">Tambah Akun</button>
+            </div>
+            <div class="table-container">
+              <table id="table-admin">
+                <thead>
+                  <tr>
+                    <th>Nama Lengkap</th>
+                    <th>Username / Email</th>
+                    <th>Role</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Tab 4: Data & Legalitas -->
+          <div id="pengaturan-tab-legalitas" class="tab-content" style="display: none;">
+            <form id="form-pengaturan-legalitas" onsubmit="event.preventDefault(); savePengaturanLegalitas();">
+              <div class="grid-2-col" style="margin-bottom: 15px;">
+                <div class="form-group">
+                  <label>Nomor SK Kemenkumham (SK Pengesahan / AHU)</label>
+                  <input type="text" class="form-control" id="legalitas-sk-kemenkumham"
+                    placeholder="Misal: AHU-0001234.AH.01.07.TAHUN 2024" />
+                </div>
+                <div class="form-group">
+                  <label>Nomor Akta Notaris / Pendirian</label>
+                  <input type="text" class="form-control" id="legalitas-akta-notaris"
+                    placeholder="Misal: No. 12 Tanggal 15 Januari 2024" />
+                </div>
+              </div>
+
+              <div class="grid-2-col" style="margin-bottom: 15px;">
+                <div class="form-group">
+                  <label>Nama Notaris</label>
+                  <input type="text" class="form-control" id="legalitas-nama-notaris"
+                    placeholder="Misal: Siti Aminah, S.H., M.Kn." />
+                </div>
+                <div class="form-group">
+                  <label>Tanggal Pendirian / Peresmian</label>
+                  <input type="text" class="form-control" id="legalitas-tanggal-pendirian"
+                    placeholder="Misal: 15 Januari 2024" />
+                </div>
+              </div>
+
+              <div class="grid-2-col" style="margin-bottom: 15px;">
+                <div class="form-group">
+                  <label>NPWP Organisasi</label>
+                  <input type="text" class="form-control" id="legalitas-npwp"
+                    placeholder="Misal: 12.345.678.9-123.000" />
+                </div>
+                <div class="form-group">
+                  <label>Nomor SK Rekomendasi / Pengesahan Dinas Pendidikan</label>
+                  <input type="text" class="form-control" id="legalitas-sk-dinas"
+                    placeholder="Misal: 421/123/DISDIK/2024" />
+                </div>
+              </div>
+
+              <div class="grid-2-col" style="margin-bottom: 25px;">
+                <div class="form-group">
+                  <label>Status Kelembagaan / Badan Hukum</label>
+                  <input type="text" class="form-control" id="legalitas-status-lembaga"
+                    placeholder="Misal: Terdaftar Resmi di Kemenkumham RI" />
+                </div>
+                <div class="form-group">
+                  <label>Landasan Hukum / Keterangan Tambahan</label>
+                  <input type="text" class="form-control" id="legalitas-keterangan"
+                    placeholder="Misal: Berdasarkan UU No. 20 Tahun 2003 &amp; AD/ART Forum" />
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary"><i class="fas fa-save" style="margin-right: 6px;"></i>
+                Simpan Data Legalitas</button>
+            </form>
+          </div>
+
+          <!-- Tab Backup & Restore -->
+          <div id="pengaturan-tab-backup" class="tab-content" style="display: none;">
+            <div class="grid-2-col" style="margin-bottom: 25px;">
+              <div class="glass-panel" style="padding: 18px; border: 1px solid var(--border-color);">
+                <h4 style="margin-bottom: 15px;">Backup Data</h4>
+                <p style="color: var(--text-muted); margin-bottom: 15px;">Unduh snapshot data aplikasi dari database spreadsheet untuk cadangan yang aman.</p>
+                <button type="button" class="btn btn-primary" onclick="exportMktasBackup()"><i class="fas fa-download"></i> Backup Sekarang</button>
+              </div>
+              <div class="glass-panel" style="padding: 18px; border: 1px solid var(--border-color);">
+                <h4 style="margin-bottom: 15px;">Restore Data</h4>
+                <p style="color: var(--text-muted); margin-bottom: 15px;">Pulihkan data dari file backup sebelumnya ke database spreadsheet aplikasi.</p>
+                <input type="file" id="restore-backup-file" accept=".json,application/json" style="display: none;" />
+                <button type="button" class="btn btn-outline" onclick="document.getElementById('restore-backup-file').click()"><i class="fas fa-upload"></i> Pilih File Backup</button>
+              </div>
+            </div>
+
+            <div class="glass-panel" style="padding: 18px; border: 1px solid var(--border-color);">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
+                <h4 style="margin: 0;">Riwayat Log</h4>
+                <button type="button" class="btn btn-sm btn-outline" onclick="openLogHistoryModal()"><i class="fas fa-history"></i> Lihat Riwayat</button>
+              </div>
+              <p style="margin: 0; color: var(--text-muted);">Log aktivitas backup, restore, dan perubahan pengaturan tersimpan di browser untuk audit internal.</p>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+      <section id="section-webpublik" class="section-content">
+        <div class="tabs-container mb-4">
+          <button class="tab-btn active" data-tab="tab-berita">Kelola Berita</button>
+          <button class="tab-btn" data-tab="tab-referensi">File Referensi</button>
+          <button class="tab-btn" data-tab="tab-slide">Foto Slide</button>
+          <button class="tab-btn" data-tab="tab-pengurus">Pengurus</button>
+          <button class="tab-btn" data-tab="tab-medsos">Medsos</button>
+          <button class="tab-btn" data-tab="tab-profil">Profil Organisasi</button>
+        </div>
+
+        <!-- TAB BERITA -->
+        <div id="tab-berita" class="tab-content active">
+          <div class="glass-panel" style="padding: 20px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h3 style="font-size: 1.25rem;">Daftar Berita</h3>
+              <button class="btn btn-primary" onclick="openTambahBerita()">+ Tambah Berita</button>
+            </div>
+            <div class="table-responsive">
+              <table class="table" id="table-berita">
+                <thead>
+                  <tr>
+                    <th>Tanggal</th>
+                    <th>Judul Berita</th>
+                    <th>Status</th>
+                    <th style="width: 100px;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB FILE REFERENSI -->
+        <div id="tab-referensi" class="tab-content">
+          <div class="glass-panel" style="padding: 20px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h3 style="font-size: 1.25rem;">Daftar File Referensi</h3>
+              <button class="btn btn-primary" id="btn-tambah-referensi" onclick="openTambahReferensi()">+ Tambah File
+                Referensi</button>
+            </div>
+            <div class="table-responsive">
+              <table class="table" id="table-referensi">
+                <thead>
+                  <tr>
+                    <th>Nama Dokumen / Referensi</th>
+                    <th>Jenis Dokumen</th>
+                    <th>Sumber / File</th>
+                    <th style="width: 200px; text-align: center;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div id="loader-referensi" class="loader mt-4 hidden"></div>
+          </div>
+        </div>
+
+        <!-- TAB SLIDE -->
+        <div id="tab-slide" class="tab-content">
+          <div class="glass-panel" style="padding: 20px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h3 style="font-size: 1.25rem;">Foto Slide Utama</h3>
+              <button class="btn btn-primary" onclick="showModal('modal-slider')">+ Tambah Slide</button>
+            </div>
+            <div class="table-responsive">
+              <table class="table" id="table-sliders">
+                <thead>
+                  <tr>
+                    <th>Gambar</th>
+                    <th>Judul/Caption</th>
+                    <th>Status</th>
+                    <th style="width: 100px;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB PENGURUS -->
+        <div id="tab-pengurus" class="tab-content">
+          <div class="glass-panel" style="padding: 20px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h3 style="font-size: 1.25rem;">Susunan Pengurus</h3>
+              <button class="btn btn-primary" onclick="openTambahPengurus()">+ Tambah Pengurus</button>
+            </div>
+            <div class="table-responsive">
+              <table class="table" id="table-pengurus">
+                <thead>
+                  <tr>
+                    <th>No. Urut</th>
+                    <th>Foto</th>
+                    <th>Nama Lengkap</th>
+                    <th>Jabatan</th>
+                    <th style="width: 100px;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB MEDSOS -->
+        <div id="tab-medsos" class="tab-content">
+          <div class="glass-panel" style="padding: 20px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h3 style="font-size: 1.25rem;">Tautan Media Sosial</h3>
+              <button class="btn btn-primary" onclick="showModal('modal-medsos')">+ Tambah Medsos</button>
+            </div>
+            <div class="table-responsive">
+              <table class="table" id="table-medsos">
+                <thead>
+                  <tr>
+                    <th>Platform</th>
+                    <th>URL / Link</th>
+                    <th style="width: 100px;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB PROFIL -->
+        <div id="tab-profil" class="tab-content">
+          <div class="glass-panel" style="padding: 20px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h3 style="font-size: 1.25rem;">Profil Organisasi</h3>
+              <button class="btn btn-primary" onclick="saveProfilOrganisasi()"><i class="fas fa-save"></i> Simpan
+                Profil</button>
+            </div>
+            <form id="form-profil">
+              <div class="form-group mb-3">
+                <label>Kata Pengantar</label>
+                <div id="editor-profil-pengantar"
+                  style="height: 230px; background: #fff; border-radius: 0 0 8px 8px; color: #1e293b;"></div>
+              </div>
+              <div class="form-group mb-3">
+                <label>Visi & Misi</label>
+                <div id="editor-profil-visimisi"
+                  style="height: 230px; background: #fff; border-radius: 0 0 8px 8px; color: #1e293b;"></div>
+              </div>
+              <div class="form-group mb-3">
+                <label>Sejarah Singkat</label>
+                <div id="editor-profil-sejarah"
+                  style="height: 270px; background: #fff; border-radius: 0 0 8px 8px; color: #1e293b;"></div>
+              </div>
+              <div class="form-group mb-3">
+                <label>Data Organisasi (Format: Kunci = Nilai)</label>
+                <textarea id="profil-data" class="form-control" rows="5"
+                  placeholder="Contoh:&#10;Jumlah Pengurus = 50&#10;Tahun Berdiri = 2026&#10;SK Kemenkumham = AHU-123.456"></textarea>
+                <small style="color: var(--text-muted); font-size: 0.8rem;">Pisahkan dengan baris baru. Gunakan tanda
+                  sama dengan (=) antara Kunci dan Nilai.</small>
+              </div>
+              <div class="form-group mb-3">
+                <label>Gambar Struktur Organisasi</label>
+                <input type="file" id="profil-struktur-file" class="form-control" accept="image/*" />
+                <input type="hidden" id="profil-struktur-url" />
+                <img id="preview-profil-struktur"
+                  style="display:none; max-width: 100%; margin-top: 10px; border-radius: 4px; border: 1px solid #ddd;" />
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Modals for Web Publik -->
+        <!-- Modal Berita -->
+        <div id="modal-berita" class="modal">
+          <div class="modal-content glass-panel"
+            style="max-width: 850px; max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="flex-shrink:0;">
+              <h3>Tambah Berita</h3>
+              <span class="close-modal" onclick="closeModalBerita()">&times;</span>
+            </div>
+            <form id="form-berita" class="modal-body" onsubmit="saveNews(event)"
+              style="overflow-y: auto; flex: 1; padding: 20px;">
+              <!-- Baris 1: Judul -->
+              <div class="form-group">
+                <label>Judul Berita</label>
+                <input type="text" id="news-title" class="form-control" required />
+              </div>
+              <!-- Baris 2: Tanggal + Upload Gambar (50-50) -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 15px;">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>Waktu Publikasi</label>
+                  <input type="datetime-local" id="news-date" class="form-control" required />
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>Gambar Berita (Opsional)</label>
+                  <input type="file" id="news-image-file" class="form-control" accept="image/*" />
+                  <input type="hidden" id="news-image" />
+                  <img id="preview-berita"
+                    style="max-width: 120px; max-height: 70px; border-radius: 6px; display: none; margin-top: 8px; object-fit:cover; border:1px solid var(--border-color);" />
+                </div>
+              </div>
+              <!-- Baris 3: Editor Quill -->
+              <div class="form-group">
+                <label>Isi Berita</label>
+                <div id="editor-berita" style="height: 320px; background: #fff; border-radius: 0 0 8px 8px;"></div>
+              </div>
+              <!-- Baris 4: Publish -->
+              <div class="form-group" style="display: flex; gap: 10px; align-items: center; margin-top: 8px;">
+                <input type="checkbox" id="news-published" checked />
+                <label style="margin: 0;">Publikasikan Langsung</label>
+              </div>
+              <div class="modal-footer" style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" class="btn btn-outline" onclick="closeModalBerita()">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- MODAL FILE REFERENSI -->
+        <div id="modal-referensi" class="modal">
+          <div class="modal-content glass-panel" style="max-width: 600px;">
+            <div class="modal-header">
+              <h3 id="modal-ref-title">Tambah File Referensi</h3>
+              <span class="close-modal" onclick="closeModalReferensi()">&times;</span>
+            </div>
+            <form id="form-referensi" onsubmit="saveReferensi(event)" style="padding: 20px;">
+              <input type="hidden" id="ref-id" />
+
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label style="font-weight: 600; display: block; margin-bottom: 6px;">Nama Referensi / Dokumen <span
+                    style="color:red;">*</span></label>
+                <input type="text" id="ref-nama" class="form-control" required
+                  placeholder="Contoh: Juknis BOS 2026, SK Pengurus, dll." />
+              </div>
+
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label style="font-weight: 600; display: block; margin-bottom: 6px;">Jenis Dokumen <span
+                    style="color:red;">*</span></label>
+                <select id="ref-jenis" class="form-control" required>
+                  <option value="Internal">Internal</option>
+                  <option value="Eksternal">Eksternal</option>
+                </select>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label style="font-weight: 600; display: block; margin-bottom: 8px;">Pilihan Sumber File <span
+                    style="color:red;">*</span></label>
+                <div style="display: flex; gap: 20px; align-items: center;">
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="radio" name="ref-sumber-pilihan" value="file" checked
+                      onchange="toggleRefSumber(this.value)" /> Upload File (Max 1 MB)
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="radio" name="ref-sumber-pilihan" value="url" onchange="toggleRefSumber(this.value)" />
+                    Isi URL / Tautan
+                  </label>
+                </div>
+              </div>
+
+              <!-- Input Group: Upload File -->
+              <div id="group-ref-file" class="form-group" style="margin-bottom: 15px;">
+                <label style="font-weight: 600; display: block; margin-bottom: 6px;">Pilih File Dokumen (PDF, Word,
+                  Excel - Maksimal 1 MB)</label>
+                <input type="file" id="ref-file-input" class="form-control"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,image/*" />
+                <small id="ref-file-info" class="text-muted"
+                  style="display: block; margin-top: 4px; font-size: 0.8rem; color: var(--text-muted);">Format didukung:
+                  PDF, Dokumen Office, Gambar (Maks. 1 MB)</small>
+              </div>
+
+              <!-- Input Group: URL -->
+              <div id="group-ref-url" class="form-group" style="margin-bottom: 15px; display: none;">
+                <label style="font-weight: 600; display: block; margin-bottom: 6px;">Tautan URL / Link Dokumen</label>
+                <input type="url" id="ref-url-input" class="form-control"
+                  placeholder="https://drive.google.com/... atau https://kemdikbud.go.id/..." />
+                <small class="text-muted"
+                  style="display: block; margin-top: 4px; font-size: 0.8rem; color: var(--text-muted);">Masukkan link
+                  lengkap yang diawali http:// atau https://</small>
+              </div>
+
+              <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px;">
+                <button type="button" class="btn btn-outline" onclick="closeModalReferensi()">Batal</button>
+                <button type="submit" class="btn btn-primary" id="btn-save-ref"><i class="fas fa-save"></i>
+                  Simpan</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- MODAL PRATINJAU FILE REFERENSI -->
+        <div id="modal-preview-referensi" class="modal">
+          <div class="modal-content glass-panel"
+            style="max-width: 900px; max-height: 92vh; display: flex; flex-direction: column;">
+            <div class="modal-header"
+              style="flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;">
+              <h3 id="preview-ref-title" style="margin: 0; font-size: 1.15rem; font-weight: 600;">Pratinjau Dokumen</h3>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <a id="btn-open-external-ref" href="#" target="_blank" class="btn btn-sm btn-outline"
+                  style="display: none; align-items: center; gap: 5px;">
+                  <i class="fas fa-external-link-alt"></i> Buka di Tab Baru
+                </a>
+                <span class="close-modal" onclick="closePreviewReferensi()"
+                  style="font-size: 1.5rem; cursor: pointer;">&times;</span>
+              </div>
+            </div>
+            <div id="preview-ref-body"
+              style="flex: 1; overflow: auto; padding: 15px; display: flex; align-items: center; justify-content: center; min-height: 450px;">
+              <!-- Dynamic iframe / viewer -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Slider -->
+        <div id="modal-slider" class="modal">
+          <div class="modal-content glass-panel" style="max-width: 500px;">
+            <div class="modal-header">
+              <h3>Tambah Foto Slide</h3>
+              <span class="close-modal" onclick="closeModal('modal-slider')">&times;</span>
+            </div>
+            <form id="form-slider" class="modal-body" onsubmit="saveSlider(event)">
+              <div class="form-group">
+                <label>Judul / Caption (Opsional)</label>
+                <input type="text" id="slider-title" class="form-control" />
+              </div>
+              <div class="form-group">
+                <label>Upload Foto Slide</label>
+                <input type="file" id="slider-image-file" class="form-control" accept="image/*" required />
+                <input type="hidden" id="slider-image" />
+                <img id="preview-slider"
+                  style="max-width: 100%; border-radius: 8px; display: none; margin-top: 10px;" />
+              </div>
+              <div class="form-group" style="display: flex; gap: 10px; align-items: center;">
+                <input type="checkbox" id="slider-active" checked />
+                <label style="margin: 0;">Aktifkan Slide</label>
+              </div>
+              <div class="modal-footer" style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-slider')">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Modal Pengurus -->
+        <div id="modal-pengurus" class="modal">
+          <div class="modal-content glass-panel" style="max-width: 500px;">
+            <div class="modal-header">
+              <h3>Tambah Pengurus</h3>
+              <span class="close-modal" onclick="closeModal('modal-pengurus')">&times;</span>
+            </div>
+            <form id="form-pengurus" class="modal-body" onsubmit="saveBoardMember(event)">
+              <div class="form-group">
+                <label>Nama Lengkap</label>
+                <input type="text" id="board-name" class="form-control" required />
+              </div>
+              <div class="form-group">
+                <label>Jabatan</label>
+                <select id="board-position-select" class="form-control" onchange="setBoardPositionMode(this.value)">
+                  <option value="Ketua">Ketua</option>
+                  <option value="Sekretaris">Sekretaris</option>
+                  <option value="Bendahara">Bendahara</option>
+                  <option value="Lainnya">Lainnya</option>
+                </select>
+              </div>
+              <div id="board-position-manual-wrapper" class="form-group" style="display: none;">
+                <label>Jabatan Manual</label>
+                <input type="text" id="board-position-manual" class="form-control" placeholder="Masukkan jabatan manual" />
+              </div>
+              <div class="form-group">
+                <label>No. Urut (Tampil)</label>
+                <input type="number" id="board-order" class="form-control" value="1" required />
+              </div>
+              <div class="form-group">
+                <label>Foto</label>
+                <div class="text-muted" style="font-size: 0.8rem; margin-bottom: 10px; color: var(--text-muted);">
+                  Foto diambil otomatis dari data pegawai yang dipilih.
+                </div>
+                <input type="hidden" id="board-image" />
+                <img id="preview-board"
+                  style="max-width: 180px; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 12px; display: none; margin-top: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
+              </div>
+              <div class="modal-footer" style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-pengurus')">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Modal Medsos -->
+        <div id="modal-medsos" class="modal">
+          <div class="modal-content glass-panel" style="max-width: 500px;">
+            <div class="modal-header">
+              <h3>Tambah Tautan Medsos</h3>
+              <span class="close-modal" onclick="closeModal('modal-medsos')">&times;</span>
+            </div>
+            <form id="form-medsos" class="modal-body" onsubmit="saveSocial(event)">
+              <div class="form-group">
+                <label>Platform Media Sosial</label>
+                <div style="display:flex;align-items:center;gap:14px;">
+                  <i id="social-icon-preview" class="fa-solid fa-link"
+                    style="font-size:1.6rem;color:#6b7280;transition:all .3s;"></i>
+                  <select id="social-platform" class="form-control" required onchange="updateSocialIconPreview()">
+                    <option value="">-- Pilih Platform --</option>
+                    <option value="Facebook">Facebook</option>
+                    <option value="Instagram">Instagram</option>
+                    <option value="WhatsApp">WhatsApp</option>
+                    <option value="Twitter / X">Twitter / X</option>
+                    <option value="Telegram">Telegram</option>
+                    <option value="Threads">Threads</option>
+                    <option value="TikTok">TikTok</option>
+                    <option value="YouTube">YouTube</option>
+                    <option value="LinkedIn">LinkedIn</option>
+                    <option value="Pinterest">Pinterest</option>
+                    <option value="Snapchat">Snapchat</option>
+                    <option value="Website / Blog">Website / Blog</option>
+                    <option value="Email">Email</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>URL / Link Profil</label>
+                <input type="url" id="social-url" class="form-control" placeholder="https://..." required />
+              </div>
+              <div class="modal-footer" style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-medsos')">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ===============================================
+       SECTION GALERI
+  =============================================== -->
+      <section id="section-galeri" class="section-content">
+        <div class="glass-panel" style="padding:30px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <h3>Galeri</h3>
+            <div>
+              <button id="btn-tambah-galeri" class="btn btn-primary" onclick="openTambahGaleri()">
+                <i class="fas fa-plus"></i> Tambah Galeri
+              </button>
+            </div>
+          </div>
+
+          <div class="tabs-nav" style="margin-bottom:22px;">
+            <button class="tab-item active" id="galeri-tab-btn-foto" onclick="switchGaleriTab('foto',this);">Galeri
+              Foto</button>
+            <button class="tab-item" id="galeri-tab-btn-video" onclick="switchGaleriTab('video',this);">Galeri
+              Video</button>
+          </div>
+
+          <!-- Tab Foto -->
+          <div id="galeri-tab-foto" style="display:block;">
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:110px;">Foto</th>
+                    <th>Judul</th>
+                    <th>Keterangan</th>
+                    <th style="width:80px;text-align:center;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-galeri-foto">
+                  <tr>
+                    <td colspan="4" class="text-center">-</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Tab Video -->
+          <div id="galeri-tab-video" style="display:none;">
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:110px;">Thumbnail</th>
+                    <th>Judul</th>
+                    <th>URL Video</th>
+                    <th style="width:80px;text-align:center;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-galeri-video">
+                  <tr>
+                    <td colspan="4" class="text-center">-</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer Dashboard Admin -->
+      <footer
+        style="margin-top: 40px; text-align: center; color: var(--text-muted); font-size: 0.85rem; padding-bottom: 20px; display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0; padding-top: 15px;">
+        <span>
+          <p style="font-size: 0.85rem; color: #9ca3af; margin: 0;">
+            &copy; 2026 <span id="footer-copyright-name">Portal MKTAS</span>. All rights reserved.
+          </p>
+        </span>
+        <span>
+          <p style="font-size: 0.85rem; color: #9ca3af; margin: 0;">
+            Powered by : <a href="https://farypin-inovasiteknologi.com" target="_blank"
+              style="color: var(--primary-color, #2563eb); text-decoration: none; font-weight: 600;">PT farypin Inovasi
+              Teknologi</a>
+          </p>
+        </span>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Modals -->
+  <div class="modal" id="modal-log-history">
+    <div class="modal-content" style="max-width: 720px;">
+      <div class="modal-header">
+        <h3>Riwayat Log Sistem</h3>
+        <button class="close-btn" onclick="closeModal('modal-log-history')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="log-history-list" style="display: grid; gap: 10px;"></div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modal-log-history')">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Tambah Admin -->
+  <div class="modal" id="modal-admin">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Tambah Akun Admin</h3>
+        <button class="close-btn"
+          onclick="closeModal('modal-admin')">&times;</button>
+      </div>
+      <form id="form-admin">
+        <div class="form-group">
+          <label>Nama Lengkap</label>
+          <input type="text" id="add-admin-nama" class="form-control" required />
+        </div>
+        <div class="form-group">
+          <label>Username / Email</label>
+          <input type="text" id="add-admin-username" class="form-control" required />
+        </div>
+        <div class="form-group">
+          <label>Password Default</label>
+          <!-- FIX Bug: type="text" -> type="password" agar password tidak terlihat -->
+          <input type="password" id="add-admin-password" class="form-control" value="123456" readonly
+            style="background: rgba(0,0,0,0.05);" />
+        </div>
+        <div class="form-group">
+          <label>Role</label>
+          <select id="add-admin-role" class="form-control" required>
+            <option value="Sekolah">Sekolah</option>
+            <option value="Admin">Admin</option>
+            <option value="Superadmin">Superadmin</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%">Simpan Akun</button>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- Modal Edit Admin -->
+  <div class="modal" id="modal-edit-admin">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Edit Akun Admin</h3>
+        <button class="close-btn"
+          onclick="closeModal('modal-edit-admin')">&times;</button>
+      </div>
+      <form id="form-edit-admin">
+        <input type="hidden" id="edit-admin-id" />
+        <div class="form-group">
+          <label>Nama Lengkap</label>
+          <input type="text" id="edit-admin-nama" class="form-control" required />
+        </div>
+        <div class="form-group">
+          <label>Username / Email</label>
+          <input type="text" id="edit-admin-username" class="form-control" required />
+        </div>
+        <div class="form-group">
+          <label>Password (Kosongkan jika tidak diubah)</label>
+          <!-- FIX Bug: type="text" -> type="password" agar password tidak terlihat -->
+          <input type="password" id="edit-admin-password" class="form-control"
+            placeholder="Masukkan password baru..." />
+        </div>
+        <div class="form-group">
+          <label>Role</label>
+          <select id="edit-admin-role" class="form-control" required>
+            <option value="Sekolah">Sekolah</option>
+            <option value="Admin">Admin</option>
+            <option value="Superadmin">Superadmin</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%">Simpan Perubahan</button>
+      </form>
+    </div>
+  </div>
+  <!-- Modal Tahun -->
+  <div class="modal" id="modal-tahun">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Tambah Tahun Jadwal</h3>
+        <button class="close-btn">&times;</button>
+      </div>
+      <form id="form-tahun">
+        <div class="form-group">
+          <label>Tahun Pelaksanaan</label>
+          <input type="number" id="add-tahun-input" class="form-control" required placeholder="Contoh: 2026" />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%">
+          Buat Tahun Baru
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Pegawai per Sekolah -->
+  <div class="modal" id="modal-pegawai-sekolah">
+    <div class="modal-content" style="max-width: 800px;">
+      <div class="modal-header">
+        <h3 id="modal-pegawai-sekolah-title">Daftar Pegawai TAS</h3>
+        <button class="close-btn">&times;</button>
+      </div>
+      <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+        <button class="btn btn-primary btn-add-staff-modal" id="btn-add-staff-sekolah">Tambah Pegawai</button>
+      </div>
+      <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+        <table id="table-pegawai-sekolah">
+          <thead>
+            <tr>
+              <th>Nama Lengkap</th>
+              <th>Jabatan</th>
+              <th>No HP</th>
+              <th style="width: 150px;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Data will be loaded dynamically -->
+          </tbody>
+        </table>
+        <div id="loader-pegawai-sekolah" class="loader mt-4 hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Kehadiran Pegawai -->
+  <div class="modal" id="modal-kehadiran-pegawai">
+    <div class="modal-content" style="max-width: 95%; width: 1000px;">
+      <div class="modal-header">
+        <h3 id="modal-kehadiran-title">Kehadiran Pegawai</h3>
+        <button class="close-btn">&times;</button>
+      </div>
+      <p style="color: var(--text-muted); margin-bottom: 15px;">Tandai pegawai yang hadir / tidak hadir.</p>
+      <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+        <table id="table-kehadiran-pegawai">
+          <thead>
+            <tr>
+              <th>Nama Lengkap</th>
+              <th class="jabatan-desktop-col">Jabatan</th>
+              <th style="width: 150px; text-align: center;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Data will be loaded dynamically -->
+          </tbody>
+        </table>
+        <div id="loader-kehadiran-pegawai" class="loader mt-4 hidden"></div>
+      </div>
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+        <button class="btn btn-primary" onclick="simpanKehadiranPegawai()">Simpan Kehadiran</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-sekolah">
+    <div class="modal-content" style="max-width: 800px;">
+      <div class="modal-header">
+        <h3>Tambah Sekolah</h3>
+        <button class="close-btn">&times;</button>
+      </div>
+      <form id="form-sekolah">
+        <div class="grid-2-col" style="margin-bottom: 15px;">
+          <div class="form-group">
+            <label>Nama Sekolah</label>
+            <input type="text" id="add-school-nama" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="add-school-status" class="form-control" required>
+              <option value="Negeri">Negeri</option>
+              <option value="Swasta">Swasta</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="add-school-username" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label>NPSN</label>
+            <input type="text" id="add-school-npsn" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label>Nama Admin</label>
+            <input type="text" id="add-school-admin" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label>No HP Admin</label>
+            <input type="text" id="add-school-nohp" class="form-control" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Alamat Sekolah</label>
+          <input type="text" id="add-school-alamat" class="form-control" required />
+        </div><!-- FIX Bug #2: </div> sebelumnya hilang, menyebabkan layout rusak -->
+        <div class="grid-2-col" style="margin-bottom: 15px;">
+          <div class="form-group">
+            <label>Provinsi</label>
+            <select id="add-school-provinsi" class="form-control" onchange="updateKabKota('add')" required>
+              <!-- Filled dynamically via JS -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Kabupaten / Kota</label>
+            <select id="add-school-kabkota" class="form-control" onchange="updateKecamatan('add')" required>
+              <!-- Filled dynamically via JS -->
+            </select>
+          </div>
+        </div>
+        <div class="grid-2-col" style="margin-bottom: 15px;">
+          <div class="form-group">
+            <label>Kecamatan</label>
+            <select id="add-school-kecamatan" class="form-control" onchange="updateKodeWilayah('add')" required>
+              <!-- Filled dynamically via JS -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Kode Wilayah</label>
+            <input type="text" id="add-school-kodewilayah" class="form-control" readonly required />
+          </div>
+        </div>
+        <!-- Koordinat -->
+        <div class="form-group" style="margin-top:4px;">
+          <label>Titik Koordinat <small style="color:var(--text-muted);font-weight:400;">(opsional — klik tombol peta
+              untuk pilih lokasi)</small></label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="text" id="add-school-koordinat" class="form-control"
+              placeholder="Contoh: -7.250445, 112.768845" style="flex:1;font-family:monospace;font-size:0.88rem;" />
+            <button type="button" class="btn btn-outline" style="white-space:nowrap;padding:8px 14px;"
+              onclick="openMapPicker('add-school-koordinat')">&#x1F4CD; Pilih di Peta</button>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px;margin-top:12px;">
+          <button type="submit" class="btn btn-primary" style="flex: 1;">Simpan</button>
+          <button type="button" class="btn btn-outline close-btn-manual" style="flex: 1;"
+            onclick="closeModal('modal-sekolah')">Close</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Edit Sekolah -->
+  <div class="modal" id="modal-edit-sekolah">
+    <div class="modal-content" style="max-width: 800px;">
+      <div class="modal-header">
+        <h3>Edit Sekolah</h3>
+        <button class="close-btn">&times;</button>
+      </div>
+      <form id="form-edit-sekolah">
+        <!-- FIX Bug #3: Tambah hidden input edit-school-id yang dibutuhkan openEditSchool() di utils.js -->
+        <input type="hidden" id="edit-school-id" />
+        <div class="grid-2-col" style="margin-bottom: 15px;">
+          <div class="form-group">
+            <label>NPSN</label>
+            <input type="text" id="edit-school-npsn" class="form-control" required readonly
+              style="background-color: #f3f4f6; cursor: not-allowed;" title="NPSN tidak dapat diubah" />
+          </div>
+          <div class="form-group">
+            <label>Nama Sekolah</label>
+            <input type="text" id="edit-school-nama" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="edit-school-status" class="form-control" required>
+              <option value="Negeri">Negeri</option>
+              <option value="Swasta">Swasta</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="edit-school-username" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label>Nama Admin</label>
+            <input type="text" id="edit-school-admin" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label>No HP Admin</label>
+            <input type="text" id="edit-school-nohp" class="form-control" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Alamat Sekolah</label>
+          <input type="text" id="edit-school-alamat" class="form-control" required />
+        </div>
+        <div class="grid-2-col" style="margin-bottom: 15px;">
+          <div class="form-group">
+            <label>Provinsi</label>
+            <select id="edit-school-provinsi" class="form-control" onchange="updateKabKota('edit')" required>
+              <!-- Filled dynamically via JS -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Kabupaten / Kota</label>
+            <select id="edit-school-kabkota" class="form-control" onchange="updateKecamatan('edit')" required>
+              <!-- Filled dynamically via JS -->
+            </select>
+          </div>
+        </div>
+        <div class="grid-2-col" style="margin-bottom: 15px;">
+          <div class="form-group">
+            <label>Kecamatan</label>
+            <select id="edit-school-kecamatan" class="form-control" onchange="updateKodeWilayah('edit')" required>
+              <!-- Filled dynamically via JS -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Kode Wilayah</label>
+            <input type="text" id="edit-school-kodewilayah" class="form-control" readonly required />
+          </div>
+        </div>
+        <!-- Koordinat -->
+        <div class="form-group" style="margin-top:4px;">
+          <label>Titik Koordinat <small style="color:var(--text-muted);font-weight:400;">(opsional)</small></label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="text" id="edit-school-koordinat" class="form-control"
+              placeholder="Contoh: -7.250445, 112.768845" style="flex:1;font-family:monospace;font-size:0.88rem;" />
+            <button type="button" class="btn btn-outline" style="white-space:nowrap;padding:8px 14px;"
+              onclick="openMapPicker('edit-school-koordinat')">&#x1F4CD; Pilih di Peta</button>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px;margin-top:12px;">
+          <button type="submit" class="btn btn-primary" style="flex: 1;">Simpan</button>
+          <button type="button" class="btn btn-outline close-btn-manual" style="flex: 1;"
+            onclick="closeModal('modal-edit-sekolah')">Close</button>
+          <!-- FIX Bug #8: Kirim school id dari hidden input ke fungsi resetPasswordSekolah -->
+          <button type="button" class="btn btn-danger" style="flex: 1;"
+            onclick="resetPasswordSekolah(document.getElementById('edit-school-id').value)">Reset Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Peta Koordinat — STANDALONE OVERLAY (tidak pakai class modal) -->
+  <div id="modal-map-picker" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:99999;
+           background:rgba(0,0,0,0.7);align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:12px;width:min(720px,95vw);max-height:92vh;
+                overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+      <!-- Header -->
+      <div style="display:flex;justify-content:space-between;align-items:center;
+                  padding:14px 20px;background:#4f46e5;color:#fff;flex-shrink:0;">
+        <h3 style="margin:0;font-size:1rem;">&#x1F4CD; Pilih Lokasi Sekolah</h3>
+        <button onclick="document.getElementById('modal-map-picker').style.display='none'"
+          style="background:none;border:none;color:#fff;font-size:1.4rem;cursor:pointer;line-height:1;">&times;</button>
+      </div>
+      <!-- Search bar -->
+      <div style="padding:10px 14px;background:#f8fafc;border-bottom:1px solid #e2e8f0;flex-shrink:0;">
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="map-search-input" placeholder="Cari nama sekolah / alamat..."
+            style="flex:1;padding:7px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:0.9rem;"
+            onkeydown="if(event.key==='Enter') searchMapLocation();" />
+          <button onclick="searchMapLocation()"
+            style="padding:7px 14px;background:#4f46e5;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.9rem;">
+            Cari
+          </button>
+        </div>
+        <small style="color:#64748b;display:block;margin-top:4px;">Atau klik langsung di peta untuk memilih
+          titik.</small>
+      </div>
+      <!-- Peta Leaflet -->
+      <div id="leaflet-map" style="flex:1;min-height:350px;width:100%;"></div>
+      <!-- Footer koordinat -->
+      <div style="padding:10px 14px;background:#f8fafc;border-top:1px solid #e2e8f0;
+                  display:flex;gap:10px;align-items:center;flex-shrink:0;">
+        <span id="map-coord-display" style="flex:1;font-family:monospace;font-size:0.88rem;color:#475569;">Belum dipilih
+          — klik peta</span>
+        <button onclick="confirmMapCoord()"
+          style="padding:7px 16px;background:#4f46e5;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">
+          &#x2713; Gunakan Koordinat
+        </button>
+        <button onclick="document.getElementById('modal-map-picker').style.display='none'"
+          style="padding:7px 14px;background:none;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;color:#475569;">
+          Batal
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-pegawai">
+    <div class="modal-content" style="max-width: 800px;">
+      <div class="modal-header">
+        <h3>Tambah Pegawai TAS</h3>
+        <button class="close-btn">&times;</button>
+      </div>
+      <form id="form-pegawai">
+        <div class="grid-2-col" style="margin-bottom: 15px;">
+          <div class="form-group" id="group-sekolah-select">
+            <label>Nama Sekolah</label>
+            <select id="add-staff-sekolah" class="form-control">
+              <!-- Options loaded dynamically -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>NIP/NIK</label>
+            <input type="text" id="add-staff-nip" class="form-control" required maxlength="18"
+              oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+              onblur="if(this.value.length > 0 && this.value.length < 16) { Swal.fire('Peringatan', 'NIP/NIK belum lengkap! Minimal 16 digit angka.', 'warning'); }" />
+          </div>
+          <div class="form-group">
+            <label>Nama Lengkap</label>
+            <input type="text" id="add-staff-nama" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label>Jenis Kelamin</label>
+            <select id="add-staff-jk" class="form-control" required>
+              <option value="Laki-laki">Laki-laki</option>
+              <option value="Perempuan">Perempuan</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tempat Lahir</label>
+            <input type="text" id="add-staff-tempatlahir" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>Tanggal Lahir</label>
+            <input type="date" id="add-staff-tgllahir" class="form-control" min="1900-01-01" max="9999-12-31" />
+          </div>
+          <div class="form-group">
+            <label>Pendidikan Terakhir</label>
+            <select id="add-staff-pendidikan" class="form-control">
+              <option value="">-- Pilih Pendidikan --</option>
+              <option value="SD">SD</option>
+              <option value="SMP">SMP</option>
+              <option value="SMA/SMK">SMA/SMK</option>
+              <option value="D1/D2/D3">D1/D2/D3</option>
+              <option value="S1">S1</option>
+              <option value="S2">S2</option>
+              <option value="S3">S3</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status Pegawai</label>
+            <select id="add-staff-status" class="form-control" onchange="updatePangkatOptions('add')" required>
+              <option value="PNS">PNS</option>
+              <option value="PPPK">PPPK</option>
+              <option value="PPPK PW">PPPK PW</option>
+              <option value="Non ASN">Non ASN</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Pangkat Golongan</label>
+            <select id="add-staff-pangkat" class="form-control" required>
+              <!-- Filled dynamically via JS -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Nama Jabatan SK <small style="color:var(--text-muted);font-weight:400">(pilih atau ketik
+                manual)</small></label>
+            <input type="text" id="add-staff-jabatan-sk" class="form-control" list="datalist-jabatan-sk"
+              autocomplete="off" placeholder="Pilih atau ketik jabatan SK..." required />
+            <datalist id="datalist-jabatan-sk">
+              <option value="Kepala Sub Bagian Tata Usaha">
+              <option value="Kepala Tata Usaha">
+              <option value="Penata Layanan Operasional">
+              <option value="Pengelola Layanan Operasional">
+              <option value="Operator Layanan Operasional">
+              <option value="Pengadministrasi Umum">
+              <option value="Pengelola Perpustakaan">
+              <option value="Pengelola Laboratorium">
+              <option value="Pranata Komputer">
+              <option value="Analis Sumber Daya Manusia Aparatur">
+              <option value="Analis Keuangan">
+              <option value="Analis Kebijakan">
+              <option value="Arsiparis">
+              <option value="Pustakawan">
+              <option value="Teknisi Sarana dan Prasarana">
+              <option value="Penjaga Sekolah">
+              <option value="Satuan Pengamanan (Satpam)">
+              <option value="Tenaga Kebersihan">
+              <option value="Pengemudi">
+            </datalist>
+          </div>
+          <div class="form-group">
+            <label>Jabatan Tugas</label>
+            <select id="add-staff-jabatan-tugas" class="form-control" required>
+              <option value="Kepala/Kasubbag TU">Kepala/Kasubbag TU</option>
+              <option value="Koordinator TAS">Koordinator TAS</option>
+              <option value="Staf Adm. Kepegawaian">Staf Adm. Kepegawaian</option>
+              <option value="Staf Adm. Kesiswaan">Staf Adm. Kesiswaan</option>
+              <option value="Staf Adm. Keuangan">Staf Adm. Keuangan</option>
+              <option value="Staf Adm. Kurikulum">Staf Adm. Kurikulum</option>
+              <option value="Staf Adm. Sarpras">Staf Adm. Sarpras</option>
+              <option value="Staf Adm. Persuratan">Staf Adm. Persuratan</option>
+              <option value="Operator">Operator</option>
+              <option value="Laboran">Laboran</option>
+              <option value="Pustakawan">Pustakawan</option>
+              <option value="Penjaga Sekolah">Penjaga Sekolah</option>
+              <option value="Petugas Kebersihan">Petugas Kebersihan</option>
+              <option value="Satpam">Satpam</option>
+              <option value="Pramusaji">Pramusaji</option>
+              <option value="Toolman">Toolman</option>
+              <option value="Teknisi">Teknisi</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>No WhatsApp</label>
+            <input type="text" id="add-staff-nowa" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="add-staff-email" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label>Foto Pegawai (3:4)</label>
+            <input type="file" id="add-staff-foto-file" class="form-control" accept="image/*" />
+            <input type="hidden" id="add-staff-foto" />
+            <img id="preview-add-staff-foto"
+              style="display:none; width: 90px; height: 120px; object-fit: cover; margin-top: 10px; border-radius: 4px; border: 1px solid var(--border-color);" />
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" class="btn btn-primary" style="flex: 1;">Simpan</button>
+          <button type="button" class="btn btn-outline" style="flex: 1;"
+            onclick="closeModal('modal-pegawai')">Close</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Edit Pegawai -->
+  <div class="modal" id="modal-edit-pegawai">
+    <div class="modal-content" style="max-width: 800px;">
+      <div class="modal-header">
+        <h3>Edit Pegawai TAS</h3>
+        <button class="close-btn"
+          onclick="closeModal('modal-edit-pegawai')">&times;</button>
+      </div>
+      <form id="form-edit-pegawai">
+        <input type="hidden" id="edit-staff-id" />
+        <div class="grid-2-col" style="margin-bottom: 15px;">
+          <div class="form-group" id="group-edit-sekolah-select">
+            <label>Nama Sekolah</label>
+            <select id="edit-staff-sekolah" class="form-control" disabled>
+              <!-- Filled via JS -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>NIP/NIK</label>
+            <input type="text" id="edit-staff-nip" class="form-control" required readonly
+              style="background-color: #f3f4f6; cursor: not-allowed;" title="NIP/NIK tidak dapat diubah" />
+          </div>
+          <div class="form-group">
+            <label>Nama Lengkap</label>
+            <input type="text" id="edit-staff-nama" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label>Jenis Kelamin</label>
+            <!-- FIX Bug #12: value sebelumnya L/P, tidak cocok dengan data tersimpan Laki-laki/Perempuan -->
+            <select id="edit-staff-jk" class="form-control" required>
+              <option value="Laki-laki">Laki-laki</option>
+              <option value="Perempuan">Perempuan</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tempat Lahir</label>
+            <input type="text" id="edit-staff-tempatlahir" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label>Tanggal Lahir</label>
+            <input type="date" id="edit-staff-tgllahir" class="form-control" min="1900-01-01" max="9999-12-31"
+              required />
+          </div>
+          <div class="form-group">
+            <label>Pendidikan Terakhir</label>
+            <select id="edit-staff-pendidikan" class="form-control" required>
+              <option value="SD">SD</option>
+              <option value="SMP">SMP</option>
+              <option value="SMA/SMK">SMA/SMK</option>
+              <option value="D1/D2/D3">D1/D2/D3</option>
+              <option value="S1">S1</option>
+              <option value="S2">S2</option>
+              <option value="S3">S3</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status Pegawai</label>
+            <select id="edit-staff-status" class="form-control" onchange="updatePangkatOptions('edit')" required>
+              <option value="PNS">PNS</option>
+              <option value="PPPK">PPPK</option>
+              <option value="PPPK PW">PPPK PW</option>
+              <option value="Non ASN">Non ASN</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Pangkat Golongan</label>
+            <select id="edit-staff-pangkat" class="form-control" required>
+              <!-- Filled dynamically via JS -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Nama Jabatan SK <small style="color:var(--text-muted);font-weight:400">(pilih atau ketik
+                manual)</small></label>
+            <input type="text" id="edit-staff-jabatan-sk" class="form-control" list="datalist-jabatan-sk"
+              autocomplete="off" placeholder="Pilih atau ketik jabatan SK..." required />
+          </div>
+          <div class="form-group">
+            <label>Jabatan Tugas</label>
+            <select id="edit-staff-jabatan-tugas" class="form-control" required>
+              <option value="Kepala/Kasubbag TU">Kepala/Kasubbag TU</option>
+              <option value="Koordinator TAS">Koordinator TAS</option>
+              <option value="Staf Adm. Kepegawaian">Staf Adm. Kepegawaian</option>
+              <option value="Staf Adm. Kesiswaan">Staf Adm. Kesiswaan</option>
+              <option value="Staf Adm. Keuangan">Staf Adm. Keuangan</option>
+              <option value="Staf Adm. Kurikulum">Staf Adm. Kurikulum</option>
+              <option value="Staf Adm. Sarpras">Staf Adm. Sarpras</option>
+              <option value="Staf Adm. Persuratan">Staf Adm. Persuratan</option>
+              <option value="Operator">Operator</option>
+              <option value="Laboran">Laboran</option>
+              <option value="Pustakawan">Pustakawan</option>
+              <option value="Penjaga Sekolah">Penjaga Sekolah</option>
+              <option value="Petugas Kebersihan">Petugas Kebersihan</option>
+              <option value="Satpam">Satpam</option>
+              <option value="Pramusaji">Pramusaji</option>
+              <option value="Toolman">Toolman</option>
+              <option value="Teknisi">Teknisi</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>No WhatsApp</label>
+            <input type="text" id="edit-staff-nowa" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="edit-staff-email" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label>Foto Pegawai (3:4)</label>
+            <input type="file" id="edit-staff-foto-file" class="form-control" accept="image/*" />
+            <input type="hidden" id="edit-staff-foto" />
+            <img id="preview-edit-staff-foto"
+              style="display:none; width: 90px; height: 120px; object-fit: cover; margin-top: 10px; border-radius: 4px; border: 1px solid var(--border-color);" />
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" class="btn btn-primary" style="flex: 1;">Simpan</button>
+          <button type="button" class="btn btn-outline" style="flex: 1;"
+            onclick="closeModal('modal-edit-pegawai')">Close</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FIX Bug #1: Wrapper <div class="modal"> yang hilang — menyebabkan modal Tambah Jadwal tidak pernah bisa muncul -->
+  <div class="modal" id="modal-jadwal">
+    <div class="modal-content" style="max-width: 800px;">
+      <div class="modal-header">
+        <h3>Tambah Jadwal</h3>
+        <button class="close-btn" onclick="window.closeModal('modal-jadwal')">&times;</button>
+      </div>
+      <form id="form-jadwal">
+        <div class="grid-2-col" style="margin-bottom: 15px;">
+          <div class="form-group">
+            <label>Tahun</label>
+            <input type="number" id="add-jadwal-tahun" class="form-control" required readonly
+              style="background-color: rgba(0,0,0,0.05);" />
+          </div>
+          <div class="form-group">
+            <label>Bulan</label>
+            <select id="add-jadwal-bulan" class="form-control" required>
+              <option value="Januari">Januari</option>
+              <option value="Februari">Februari</option>
+              <option value="Maret">Maret</option>
+              <option value="April">April</option>
+              <option value="Mei">Mei</option>
+              <option value="Juni">Juni</option>
+              <option value="Juli">Juli</option>
+              <option value="Agustus">Agustus</option>
+              <option value="September">September</option>
+              <option value="Oktober">Oktober</option>
+              <option value="November">November</option>
+              <option value="Desember">Desember</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-2-col" style="margin-bottom: 15px;">
+          <div class="form-group">
+            <label>Sekolah Tuan Rumah</label>
+            <select id="add-jadwal-sekolah" class="form-control" required>
+              <!-- Options loaded dynamically -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tanggal Pelaksanaan</label>
+            <input type="date" id="add-jadwal-tanggal" class="form-control" required />
+          </div>
+        </div>
+
+        <div class="grid-2-col" style="margin-bottom: 15px;">
+          <div class="form-group">
+            <label>Alamat / Kecamatan</label>
+            <input type="text" id="add-jadwal-alamat" class="form-control" required
+              placeholder="Masukkan alamat / kecamatan" />
+          </div>
+          <div class="form-group">
+            <label>Keterangan</label>
+            <select id="add-jadwal-ket" class="form-control">
+              <option value="Akan Datang">Akan Datang</option>
+              <option value="Terlaksana">Terlaksana</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 25px;">
+          <label>Deskripsi / Agenda Kegiatan (Opsional)</label>
+          <textarea id="add-jadwal-deskripsi" class="form-control" rows="3"
+            placeholder="Tuliskan agenda atau catatan kegiatan..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%">Simpan Jadwal</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Edit Jadwal -->
+  <div class="modal" id="modal-edit-jadwal">
+    <div class="modal-content" style="max-width: 800px;">
+      <div class="modal-header">
+        <h3>Edit Jadwal</h3>
+        <button class="close-btn">&times;</button>
+      </div>
+      <form id="form-edit-jadwal">
+        <input type="hidden" id="edit-jadwal-id" />
+        <div class="grid-2-col" style="margin-bottom: 15px;">
+          <div class="form-group">
+            <label>Tahun</label>
+            <input type="number" id="edit-jadwal-tahun" class="form-control" required readonly
+              style="background-color: rgba(0,0,0,0.05);" />
+          </div>
+          <div class="form-group">
+            <label>Bulan</label>
+            <select id="edit-jadwal-bulan" class="form-control" required>
+              <option value="Januari">Januari</option>
+              <option value="Februari">Februari</option>
+              <option value="Maret">Maret</option>
+              <option value="April">April</option>
+              <option value="Mei">Mei</option>
+              <option value="Juni">Juni</option>
+              <option value="Juli">Juli</option>
+              <option value="Agustus">Agustus</option>
+              <option value="September">September</option>
+              <option value="Oktober">Oktober</option>
+              <option value="November">November</option>
+              <option value="Desember">Desember</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-2-col" style="margin-bottom: 15px;">
+          <div class="form-group">
+            <label>Sekolah Tuan Rumah</label>
+            <select id="edit-jadwal-sekolah" class="form-control" required>
+              <!-- Options loaded dynamically -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tanggal Pelaksanaan</label>
+            <input type="date" id="edit-jadwal-tanggal" class="form-control" required />
+          </div>
+        </div>
+
+        <div class="grid-2-col" style="margin-bottom: 15px;">
+          <div class="form-group">
+            <label>Alamat / Kecamatan</label>
+            <input type="text" id="edit-jadwal-alamat" class="form-control" required
+              placeholder="Masukkan alamat / kecamatan" />
+          </div>
+          <div class="form-group">
+            <label>Keterangan</label>
+            <select id="edit-jadwal-ket" class="form-control">
+              <option value="Akan Datang">Akan Datang</option>
+              <option value="Terlaksana">Terlaksana</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 25px;">
+          <label>Deskripsi / Agenda Kegiatan (Opsional)</label>
+          <textarea id="edit-jadwal-deskripsi" class="form-control" rows="3"
+            placeholder="Tuliskan agenda atau catatan kegiatan..."></textarea>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" class="btn btn-primary" style="flex: 1;">Simpan Perubahan</button>
+          <button type="button" class="btn btn-outline" style="flex: 1;"
+            onclick="closeModal('modal-edit-jadwal')">Batal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal PDF Viewer -->
+  <div class="modal" id="modal-cetak-pdf">
+    <div class="modal-content" style="max-width: 900px; padding: 0; overflow: hidden; background: #fff;">
+      <div class="pdf-toolbar"
+        style="padding: 15px; background: #f3f4f6; display: flex; justify-content: space-between; border-bottom: 1px solid #ddd;">
+        <h3>Daftar Hadir MKTAS.pdf</h3>
+        <div class="pdf-toolbar-actions">
+          <button onclick="zoomPDF(0.1)" title="Zoom In" class="btn btn-sm btn-outline">+</button>
+          <button onclick="zoomPDF(-0.1)" title="Zoom Out" class="btn btn-sm btn-outline">-</button>
+          <button onclick="window.print()" title="Print" class="btn btn-sm btn-outline">🖨️</button>
+          <button onclick="closeModal('modal-cetak-pdf')" title="Close"
+            class="btn btn-sm btn-danger" style="margin-left: 20px;">&times;</button>
+        </div>
+      </div>
+      <div class="pdf-viewer-container"
+        style="padding: 20px; max-height: 70vh; overflow: auto; background: #525659; display: flex; justify-content: center;">
+        <div class="pdf-page" id="pdf-page-content"
+          style="transform: scale(1); transform-origin: top center; transition: transform 0.2s;">
+          <div class="pdf-page-title">DAFTAR HADIR MKTAS</div>
+          <div style="text-align: center; margin-bottom: 20px;">
+            <p id="pdf-jadwal-info"></p>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 50px;">No</th>
+                <th>Nama Sekolah</th>
+                <th style="width: 120px; text-align: center;">Kehadiran</th>
+              </tr>
+            </thead>
+            <tbody id="pdf-table-body">
+              <!-- Data Sekolah yang hadir -->
+            </tbody>
+          </table>
+          <div style="margin-top: 50px; text-align: right; padding-right: 50px;">
+            <p>Ketua MKTAS,</p>
+            <br><br><br>
+            <p>_______________________</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Import Sekolah -->
+  <div class="modal" id="modal-import-sekolah">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Import Data Sekolah (Excel)</h3>
+        <button class="close-btn">&times;</button>
+      </div>
+      <form id="form-import-sekolah">
+        <div style="margin-bottom: 20px; text-align: center;">
+          <a href="#" id="btn-download-template"
+            style="color: var(--primary-color); font-weight: 500; text-decoration: underline;">Unduh Template Import
+            (.xlsx)</a>
+        </div>
+        <div class="form-group" style="margin-bottom: 25px;">
+          <label>Pilih File Excel (.xlsx)</label>
+          <input type="file" id="file-import-sekolah" class="form-control" accept=".xlsx, .xls" required />
+          <small style="color: var(--text-muted); display: block; margin-top: 5px;">Pastikan file sesuai dengan format
+            template yang disediakan.</small>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%">Import Sekarang</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Crop Image Universal -->
+  <div class="modal" id="modal-crop" style="z-index: 9999;">
+    <div class="modal-content" style="max-width: 700px; background: #fff;">
+      <div class="modal-header">
+        <h3>Sesuaikan Gambar</h3>
+        <button class="close-btn" onclick="closeModal('modal-crop')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div
+          style="width: 100%; max-height: 400px; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #f3f4f6; border-radius: 8px;">
+          <img id="image-to-crop" style="max-width: 100%;" />
+        </div>
+      </div>
+      <div class="modal-footer" style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modal-crop')">Batal</button>
+        <button type="button" class="btn btn-primary" id="btn-crop-upload">Crop & Gunakan</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Modal Tambah Galeri (Foto / Video) -->
+  <div class="modal" id="modal-galeri">
+    <div class="modal-content" style="max-width:540px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-photo-video" style="color:var(--primary-color);"></i> Tambah Galeri</h3>
+        <button class="close-btn" onclick="closeModal('modal-galeri')">&times;</button>
+      </div>
+      <form id="form-galeri" onsubmit="saveGaleriUnified(event)" style="padding:16px 0 0;">
+        <!-- Pilihan Tipe Galeri: Foto atau Video -->
+        <div class="form-group" style="margin-bottom:16px;">
+          <label style="font-weight:600;display:block;margin-bottom:8px;">Pilih Jenis Galeri <span
+              style="color:#ef4444;">*</span></label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <label id="label-tipe-foto" class="galeri-tipe-card"
+              style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:2px solid var(--primary-color);border-radius:10px;background:rgba(37,99,235,0.06);cursor:pointer;transition:all 0.2s;">
+              <input type="radio" name="galeri-tipe" id="tipe-galeri-foto" value="foto" checked
+                onchange="toggleGaleriTipe(this.value)"
+                style="accent-color:var(--primary-color);width:17px;height:17px;" />
+              <div>
+                <strong style="display:block;font-size:0.95rem;color:var(--text-color);"><i class="fas fa-image"
+                    style="color:var(--primary-color);margin-right:4px;"></i> Foto</strong>
+                <small style="color:var(--text-muted);font-size:0.75rem;">Unggah gambar / foto</small>
+              </div>
+            </label>
+            <label id="label-tipe-video" class="galeri-tipe-card"
+              style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:2px solid var(--border-color);border-radius:10px;background:var(--bg-card, #fff);cursor:pointer;transition:all 0.2s;">
+              <input type="radio" name="galeri-tipe" id="tipe-galeri-video" value="video"
+                onchange="toggleGaleriTipe(this.value)"
+                style="accent-color:var(--primary-color);width:17px;height:17px;" />
+              <div>
+                <strong style="display:block;font-size:0.95rem;color:var(--text-color);"><i class="fab fa-youtube"
+                    style="color:#ef4444;margin-right:4px;"></i> Video</strong>
+                <small style="color:var(--text-muted);font-size:0.75rem;">Tautkan link YouTube</small>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Judul Foto / Video -->
+        <div class="form-group">
+          <label id="lbl-galeri-judul" style="font-weight:600;">Judul Foto <span id="span-req-judul"
+              style="display:none;color:#ef4444;">*</span> <small id="small-opt-judul"
+              style="color:var(--text-muted);">(opsional)</small></label>
+          <input type="text" id="galeri-title" class="form-control" placeholder="Masukkan judul..." />
+        </div>
+
+        <!-- Kolom Khusus Foto: Upload File -->
+        <div id="group-galeri-foto" class="form-group" style="display:block;">
+          <label style="font-weight:600;">Upload File Foto <span style="color:#ef4444;">*</span> <small
+              style="color:var(--text-muted);">(rasio 5:3 landscape)</small></label>
+          <input type="file" id="galeri-foto-file" class="form-control"
+            accept="image/jpeg,image/png,image/webp,image/jpg" data-target-hidden="galeri-image-url"
+            data-preview="preview-galeri-img" data-aspect="5:3" />
+          <input type="hidden" id="galeri-image-url" />
+          <div style="margin-top:8px;">
+            <img id="preview-galeri-img"
+              style="display:none;width:100%;max-height:180px;object-fit:cover;border-radius:8px;border:1px solid var(--border-color);box-shadow:0 2px 8px rgba(0,0,0,0.06);" />
+          </div>
+          <small style="color:var(--text-muted);display:block;margin-top:5px;font-size:0.8rem;">
+            <i class="fas fa-cloud-upload-alt" style="color:var(--primary-color);"></i> Foto akan dipotong otomatis dan
+            tersimpan ke Cloudinary pada versi online.
+          </small>
+        </div>
+
+        <!-- Kolom Khusus Video: URL Video -->
+        <div id="group-galeri-video" class="form-group" style="display:none;">
+          <label style="font-weight:600;">URL Video <span style="color:#ef4444;">*</span> <small
+              style="color:var(--text-muted);">(YouTube / Video Link)</small></label>
+          <input type="url" id="galeri-video-url" class="form-control"
+            placeholder="Contoh: https://www.youtube.com/watch?v=..." />
+          <small style="color:var(--text-muted);display:block;margin-top:5px;font-size:0.8rem;">
+            <i class="fab fa-youtube" style="color:#ef4444;"></i> Masukkan tautan video YouTube (bisa video biasa,
+            shorts, atau embed).
+          </small>
+        </div>
+
+        <!-- Deskripsi / Keterangan -->
+        <div class="form-group">
+          <label style="font-weight:600;">Deskripsi / Keterangan <small
+              style="color:var(--text-muted);">(opsional)</small></label>
+          <textarea id="galeri-desc" class="form-control" rows="2"
+            placeholder="Deskripsi atau keterangan singkat..."></textarea>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <button type="submit" class="btn btn-primary" style="flex:1;"><i class="fas fa-save"></i> Simpan
+            Galeri</button>
+          <button type="button" class="btn btn-outline" style="flex:1;"
+            onclick="closeModal('modal-galeri')">Batal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Wajib Ubah Password Default (Akun Sekolah & Admin) -->
+  <div class="modal" id="modal-wajib-ganti-password"
+    style="z-index: 99999; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px);">
+    <div class="modal-content"
+      style="max-width: 440px; border-radius: 16px; padding: 32px 28px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); border: 1px solid rgba(255,255,255,0.1);">
+      <div style="text-align: center; margin-bottom: 22px;">
+        <div
+          style="width: 60px; height: 60px; border-radius: 50%; background: #eff6ff; color: #2563eb; display: inline-flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.15);">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h3 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin-bottom: 6px;">Wajib Ganti Password</h3>
+        <p style="font-size: 0.88rem; color: #64748b; line-height: 1.55; margin: 0 auto;">
+          Akun Anda terdeteksi masih menggunakan password default <strong>(123456)</strong>. Demi keamanan, silakan buat
+          password baru Anda sebelum melanjutkan.
+        </p>
+      </div>
+
+      <form id="form-wajib-ganti-password" onsubmit="submitWajibGantiPassword(event)">
+        <!-- Kolom Password Baru -->
+        <div class="form-group" style="margin-bottom: 16px; text-align: left;">
+          <label style="font-weight: 600; font-size: 0.88rem; display: block; margin-bottom: 6px; color: #334155;">
+            Password Baru <span style="color: #ef4444;">*</span>
+          </label>
+          <div style="position: relative;">
+            <input type="password" id="wajib-pass-baru" class="form-control" required
+              placeholder="Minimal 6 karakter..." style="padding-right: 42px;" autocomplete="new-password" />
+            <button type="button" onclick="togglePassView('wajib-pass-baru', this)"
+              style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #94a3b8; font-size: 1.1rem; padding: 4px;">
+              👁️
+            </button>
+          </div>
+        </div>
+
+        <!-- Kolom Ulangi Password -->
+        <div class="form-group" style="margin-bottom: 18px; text-align: left;">
+          <label style="font-weight: 600; font-size: 0.88rem; display: block; margin-bottom: 6px; color: #334155;">
+            Ulangi Password Baru <span style="color: #ef4444;">*</span>
+          </label>
+          <div style="position: relative;">
+            <input type="password" id="wajib-pass-konfirmasi" class="form-control" required
+              placeholder="Ketik ulang password baru..." style="padding-right: 42px;" autocomplete="new-password" />
+            <button type="button" onclick="togglePassView('wajib-pass-konfirmasi', this)"
+              style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #94a3b8; font-size: 1.1rem; padding: 4px;">
+              👁️
+            </button>
+          </div>
+        </div>
+
+        <!-- Alert Error Message -->
+        <div id="wajib-pass-alert"
+          style="display: none; background: #fef2f2; color: #b91c1c; padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 16px; border: 1px solid #fecaca; line-height: 1.4; text-align: left;">
+          <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i> <span
+            id="wajib-pass-alert-text"></span>
+        </div>
+
+        <button type="submit" id="btn-submit-wajib-pass" class="btn btn-primary"
+          style="width: 100%; padding: 12px; font-weight: 700; border-radius: 8px; font-size: 0.95rem; justify-content: center;">
+          <i class="fa-solid fa-key" style="margin-right: 6px;"></i> Simpan & Gunakan Password Baru
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Profil Pengguna / Ubah Akun & Password -->
+  <div id="modal-profil-user" class="modal">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div
+            style="width: 38px; height: 38px; border-radius: 10px; background: var(--gradient-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+            <i class="fa-solid fa-user-gear"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-size: 1.25rem;">Profil Akun</h3>
+            <small style="color: var(--text-muted);">Kelola data admin dan ubah password</small>
+          </div>
+        </div>
+        <button type="button" class="close-btn" onclick="closeModal('modal-profil-user')">&times;</button>
+      </div>
+
+      <form id="form-profil-user" onsubmit="event.preventDefault(); submitUpdateProfilUser();">
+        <div class="form-group">
+          <label style="font-weight: 600;">Username</label>
+          <input type="text" id="prof-username" class="form-control" readonly
+            style="background: #f1f5f9; cursor: not-allowed; font-weight: 600; color: #475569;" />
+          <small style="color: var(--text-muted); font-size: 0.78rem;">Username login akun (tidak dapat diubah)</small>
+        </div>
+
+        <div class="form-group">
+          <label style="font-weight: 600;">Role / Hak Akses</label>
+          <div id="prof-role-display"
+            style="padding: 8px 12px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; font-weight: 600; color: var(--primary-color);">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label style="font-weight: 600;" id="prof-nama-label">Nama Admin</label>
+          <input type="text" id="prof-nama" class="form-control" required placeholder="Masukkan nama admin..." />
+          <small style="color: var(--text-muted); font-size: 0.78rem;" id="prof-nama-hint">Nama penanggung jawab
+            akun</small>
+        </div>
+
+        <div style="margin: 20px 0 12px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+          <label style="font-weight: 700; color: var(--text-dark); display: block; margin-bottom: 4px;">
+            <i class="fa-solid fa-lock" style="color: var(--primary-color); margin-right: 6px;"></i> Ganti Password
+          </label>
+          <small style="color: var(--text-muted); display: block; margin-bottom: 12px;">Kosongkan kolom di bawah jika
+            tidak ingin mengubah password akun Anda.</small>
+
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label style="font-size: 0.9rem;">Password Baru</label>
+            <div style="position: relative;">
+              <input type="password" id="prof-pass-baru" class="form-control" placeholder="Minimal 6 karakter..."
+                style="padding-right: 42px;" autocomplete="new-password" />
+              <button type="button" onclick="togglePassView('prof-pass-baru', this)"
+                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #94a3b8; font-size: 1.1rem; padding: 4px;">
+                👁️
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 8px;">
+            <label style="font-size: 0.9rem;">Ulangi Password Baru</label>
+            <div style="position: relative;">
+              <input type="password" id="prof-pass-konfirmasi" class="form-control"
+                placeholder="Ketik ulang password baru..." style="padding-right: 42px;" autocomplete="new-password" />
+              <button type="button" onclick="togglePassView('prof-pass-konfirmasi', this)"
+                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #94a3b8; font-size: 1.1rem; padding: 4px;">
+                👁️
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="prof-alert"
+          style="display: none; background: #fef2f2; color: #b91c1c; padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 16px; border: 1px solid #fecaca; line-height: 1.4;">
+          <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i> <span id="prof-alert-text"></span>
+        </div>
+
+        <div class="modal-footer" style="padding-top: 10px;">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modal-profil-user')">Batal</button>
+          <button type="submit" id="btn-save-profil-user" class="btn btn-primary">
+            <i class="fa-solid fa-floppy-disk" style="margin-right: 6px;"></i> Simpan Perubahan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/wilayah.js"></script>
+  <script src="js/modules/utils.js"></script>
+  <script src="js/modules/auth.js"></script>
+  <script src="js/modules/dashboard.js"></script>
+  <script src="js/modules/sekolah.js"></script>
+  <script src="js/modules/pegawai.js"></script>
+  <script src="js/modules/jadwal.js"></script>
+  <script src="js/modules/laporan.js"></script><!-- FIX Bug #20: laporan.js sebelumnya tidak dimuat -->
+  <script src="js/modules/akun.js"></script>
+  <script src="js/modules/web-publik.js"></script>
+  <script src="js/modules/gallery.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (typeof initDashboard === 'function') initDashboard();
+    });
+  </script>
+
+  <!-- Dashboard Mobile Bottom Navigation (render by JS sesuai role) -->
+  <nav class="dash-bottom-nav" id="dash-bottom-nav" aria-label="Navigasi Dashboard" style="display:none;">
+    <!-- Diisi oleh initDashboardBottomNav() di dashboard.js -->
+  </nav>
+
+</body>
+
+</html>
