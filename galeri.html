@@ -525,79 +525,78 @@
       }
     }
 
-    document.addEventListener('DOMContentLoaded', async () => {
-      // 1. Load Settings
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Settings & Branding Seketika dari Cache (0 ms)
       let s = JSON.parse(localStorage.getItem('mktas_settings') || '{}');
-      try {
-        const setRes = await fetchAPI('getSettings', {});
-        if (setRes.status === 'success' && setRes.data) {
-          s = typeof mergeSettings === 'function' ? mergeSettings(s, setRes.data) : Object.assign(s, setRes.data);
-        }
-      } catch (e) {}
-
       if (typeof applyWarnaSettings === 'function') {
         applyWarnaSettings(s);
       }
 
-      if (s.nama_forum) document.getElementById('footer-forum-name').textContent = s.nama_forum;
-      if (s.singkatan_forum) document.getElementById('footer-copyright-name').textContent = s.singkatan_forum;
-      if (s.wilayah) {
-        document.getElementById('footer-region').textContent = s.wilayah;
-        const hw = document.getElementById('header-wilayah');
-        if (hw) hw.textContent = s.wilayah;
-      }
-      if (s.alamat) document.getElementById('footer-address').textContent = s.alamat;
-      if (s.telp) {
-        document.getElementById('footer-phone').textContent = s.telp;
-        let clean = String(s.telp).replace(/[^0-9]/g, '');
-        if (clean.startsWith('0')) clean = '62' + clean.substring(1);
-        const pl = document.getElementById('footer-phone-link');
-        if (pl) pl.href = 'https://wa.me/' + clean;
-      }
-      if (s.email) {
-        document.getElementById('footer-email').textContent = s.email;
-        const el = document.getElementById('footer-email-link');
-        if (el) el.href = 'mailto:' + s.email;
-      }
-      if (s.website) {
-        const webUrl = s.website.startsWith('http') ? s.website : 'https://' + s.website;
-        const webEl = document.getElementById('footer-website');
-        if (webEl) {
-          webEl.textContent = s.website.replace(/^https?:\/\//, '');
-          webEl.href = webUrl;
+      function applyBrandingUI(set) {
+        if (set.nama_forum) document.getElementById('footer-forum-name').textContent = set.nama_forum;
+        if (set.singkatan_forum) document.getElementById('footer-copyright-name').textContent = set.singkatan_forum;
+        if (set.wilayah) {
+          document.getElementById('footer-region').textContent = set.wilayah;
+          const hw = document.getElementById('header-wilayah');
+          if (hw) hw.textContent = set.wilayah;
+        }
+        if (set.alamat) document.getElementById('footer-address').textContent = set.alamat;
+        if (set.telp) {
+          document.getElementById('footer-phone').textContent = set.telp;
+          let clean = String(set.telp).replace(/[^0-9]/g, '');
+          if (clean.startsWith('0')) clean = '62' + clean.substring(1);
+          const pl = document.getElementById('footer-phone-link');
+          if (pl) pl.href = 'https://wa.me/' + clean;
+        }
+        if (set.email) {
+          document.getElementById('footer-email').textContent = set.email;
+          const el = document.getElementById('footer-email-link');
+          if (el) el.href = 'mailto:' + set.email;
+        }
+        if (set.website) {
+          const webUrl = set.website.startsWith('http') ? set.website : 'https://' + set.website;
+          const webEl = document.getElementById('footer-website');
+          if (webEl) {
+            webEl.textContent = set.website.replace(/^https?:\/\//, '');
+            webEl.href = webUrl;
+          }
+        }
+        if (set.logo_forum) {
+          document.getElementById('footer-logo').src = set.logo_forum;
+          document.getElementById('footer-logo').style.display = 'block';
+
+          const headerImg = document.getElementById('header-logo-img');
+          const headerSvg = document.getElementById('header-logo-svg');
+          if (headerImg && headerSvg) {
+            headerImg.src = set.logo_forum;
+            headerImg.style.display = 'block';
+            headerSvg.style.display = 'none';
+          }
         }
       }
-      if (s.logo_forum) {
-        document.getElementById('footer-logo').src = s.logo_forum;
-        document.getElementById('footer-logo').style.display = 'block';
+      applyBrandingUI(s);
 
-        const headerImg = document.getElementById('header-logo-img');
-        const headerSvg = document.getElementById('header-logo-svg');
-        if (headerImg && headerSvg) {
-          headerImg.src = s.logo_forum;
-          headerImg.style.display = 'block';
-          headerSvg.style.display = 'none';
-        }
-      }
-
-      // 2. Load Socials
-      try {
-        const socRes = await fetchAPI('getSocials', {});
-        const socContainer = document.getElementById('social-container');
-        if (socRes.status === 'success' && socRes.data && socRes.data.length > 0) {
-          socContainer.innerHTML = socRes.data.map(item => `
+      // 2. Render Socials Seketika dari Cache (0 ms)
+      const socContainer = document.getElementById('social-container');
+      const localSocials = JSON.parse(localStorage.getItem('mktas_socials') || '[]');
+      function renderSocialsUI(socialList) {
+        if (!socContainer) return;
+        if (Array.isArray(socialList) && socialList.length > 0) {
+          socContainer.innerHTML = socialList.map(item => `
             <a href="${item.url}" target="_blank" title="${item.platform}"><i class="${item.icon || 'fa-solid fa-link'}"></i></a>
           `).join('');
         }
-      } catch (e) {}
+      }
+      renderSocialsUI(localSocials);
 
-      // 3. Load Photos
+      // 3. Render Foto Seketika dari Cache (0 ms)
       const fotoContainer = document.getElementById('foto-container');
-      try {
-        const fotoRes = await fetchAPI('getGalleryPhotos', {});
-        if (fotoRes.status === 'success' && fotoRes.data && fotoRes.data.length > 0) {
-          window._galleryPhotos = fotoRes.data;
-          fotoContainer.innerHTML = fotoRes.data.map((p, idx) => `
+      const localPhotos = JSON.parse(localStorage.getItem('mktas_gallery_photos') || '[]');
+      function renderPhotosUI(photos) {
+        if (!fotoContainer) return;
+        window._galleryPhotos = photos;
+        if (Array.isArray(photos) && photos.length > 0) {
+          fotoContainer.innerHTML = photos.map((p, idx) => `
             <div class="gallery-card" onclick="openLightboxByIndex(${idx})">
               <div class="gallery-img-wrap">
                 <img src="${p.image_url}" alt="${p.title || 'Foto'}" loading="lazy" />
@@ -612,16 +611,16 @@
         } else {
           fotoContainer.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 50px 0;">Belum ada foto dokumentasi.</p>';
         }
-      } catch (e) {
-        fotoContainer.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: red; padding: 50px 0;">Gagal memuat galeri foto.</p>';
       }
+      renderPhotosUI(localPhotos);
 
-      // 4. Load Videos
+      // 4. Render Video Seketika dari Cache (0 ms)
       const videoContainer = document.getElementById('video-container');
-      try {
-        const videoRes = await fetchAPI('getGalleryVideos', {});
-        if (videoRes.status === 'success' && videoRes.data && videoRes.data.length > 0) {
-          videoContainer.innerHTML = videoRes.data.map(v => {
+      const localVideos = JSON.parse(localStorage.getItem('mktas_gallery_videos') || '[]');
+      function renderVideosUI(videos) {
+        if (!videoContainer) return;
+        if (Array.isArray(videos) && videos.length > 0) {
+          videoContainer.innerHTML = videos.map(v => {
             const ytId = extractYoutubeId(v.video_url);
             const embed = ytId
               ? `<iframe src="https://www.youtube-nocookie.com/embed/${ytId}" title="${v.title || 'Video'}" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>`
@@ -642,11 +641,53 @@
         } else {
           videoContainer.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 50px 0;">Belum ada video dokumentasi.</p>';
         }
-      } catch (e) {
-        videoContainer.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: red; padding: 50px 0;">Gagal memuat galeri video.</p>';
       }
+      renderVideosUI(localVideos);
 
-      // 5. Scroll to Top Logic
+      // 5. Cek Versi Data di Latar Belakang (Non-blocking)
+      const cachedVer = localStorage.getItem('mktas_data_version') || '';
+      fetchAPI('getDataVersion', {}).then(vRes => {
+        const serverVer = (vRes && vRes.status === 'success' && vRes.version) ? String(vRes.version) : '';
+        if (serverVer && serverVer === cachedVer && localPhotos.length > 0) {
+          return; // SELESAI: data sudah termutakhir, 0 panggilan spreadsheet!
+        }
+
+        // Ambil data baru jika versi berubah
+        Promise.all([
+          fetchAPI('getSettings', {}),
+          fetchAPI('getSocials', {}),
+          fetchAPI('getGalleryPhotos', {}),
+          fetchAPI('getGalleryVideos', {})
+        ]).then(([setRes, socRes, fotoRes, videoRes]) => {
+          if (serverVer) localStorage.setItem('mktas_data_version', serverVer);
+
+          if (setRes && setRes.status === 'success' && setRes.data) {
+            s = typeof mergeSettings === 'function' ? mergeSettings(s, setRes.data) : Object.assign(s, setRes.data);
+            try { localStorage.setItem('mktas_settings', JSON.stringify(s)); } catch(e) {}
+            applyBrandingUI(s);
+            if (typeof applyWarnaSettings === 'function') applyWarnaSettings(s);
+          }
+
+          if (socRes && socRes.status === 'success' && Array.isArray(socRes.data)) {
+            try { localStorage.setItem('mktas_socials', JSON.stringify(socRes.data)); } catch(e) {}
+            renderSocialsUI(socRes.data);
+          }
+
+          if (fotoRes && fotoRes.status === 'success' && Array.isArray(fotoRes.data)) {
+            try { localStorage.setItem('mktas_gallery_photos', JSON.stringify(fotoRes.data)); } catch(e) {}
+            renderPhotosUI(fotoRes.data);
+          }
+
+          if (videoRes && videoRes.status === 'success' && Array.isArray(videoRes.data)) {
+            try { localStorage.setItem('mktas_gallery_videos', JSON.stringify(videoRes.data)); } catch(e) {}
+            renderVideosUI(videoRes.data);
+          }
+        });
+      }).catch(err => {
+        console.warn('[galeri] Revalidation failed:', err);
+      });
+
+      // 6. Scroll to Top Logic
       window.addEventListener('scroll', () => {
         const btn = document.getElementById('btn-scroll-top');
         if (btn) {
