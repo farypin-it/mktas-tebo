@@ -4,10 +4,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Kumpulan Berita - SIM MKTAS</title>
+  <title>Kumpulan Berita - Portal MKTAS</title>
   <link rel="stylesheet" href="css/style.css" />
   <script>
-    (function() {
+    (function () {
       try {
         var s = JSON.parse(localStorage.getItem('mktas_settings') || '{}');
         var r = document.documentElement;
@@ -24,7 +24,7 @@
         r.style.setProperty('--gradient-sidebar', 'linear-gradient(180deg, ' + p + ' 0%, ' + a2 + ' 100%)');
         r.style.setProperty('--gradient-accent', 'linear-gradient(135deg, ' + p + ' 0%, ' + a1 + ' 100%)');
         r.style.setProperty('--gradient-text', 'linear-gradient(135deg, ' + p + ' 0%, ' + a2 + ' 100%)');
-      } catch(e) {}
+      } catch (e) { }
     })();
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -32,6 +32,7 @@
     html {
       scroll-behavior: smooth;
     }
+
     .btn-scroll-top {
       position: fixed;
       bottom: 30px;
@@ -54,16 +55,19 @@
       transform: translateY(20px);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
+
     .btn-scroll-top.show {
       opacity: 1;
       visibility: visible;
       transform: translateY(0);
     }
+
     .btn-scroll-top:hover {
       background: var(--gradient-hover, var(--primary-hover, #4338ca));
       transform: translateY(-3px);
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
     }
+
     .public-footer {
       background: #1f2937;
       color: white;
@@ -102,8 +106,6 @@
     .social-links a:hover {
       color: var(--primary-color);
     }
-
-
   </style>
 </head>
 
@@ -117,7 +119,8 @@
         </svg>
         <img id="header-logo-img" src="" alt="Logo"
           style="width: 38px; height: 38px; object-fit: contain; display: none;" />
-        <div style="display: flex; flex-direction: column; justify-content: center; text-align: left; line-height: 1.15;">
+        <div
+          style="display: flex; flex-direction: column; justify-content: center; text-align: left; line-height: 1.15;">
           <div style="font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px;">
             <span style="color: #f97316;">Portal</span> <span style="color: #2563eb;">MKTAS</span>
           </div>
@@ -159,87 +162,83 @@
   <script src="js/api.js"></script>
   <script src="js/footer.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-      let localSet = JSON.parse(localStorage.getItem('mktas_settings') || '{}');
-      try {
-        if (typeof fetchAPI !== 'undefined') {
-          const res = await fetchAPI('getSettings', {});
-          if (res && res.status === 'success' && res.data) {
-              localSet = typeof mergeSettings === 'function' ? mergeSettings(localSet, res.data) : Object.assign(localSet, res.data);
-          }
-        }
-      } catch (e) {}
+    document.addEventListener('DOMContentLoaded', () => {
+      let localSet = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_settings', {}) : JSON.parse(localStorage.getItem('mktas_settings') || '{}');
 
+      // 1. Terapkan Warna & Branding Header/Footer Seketika (0 detik)
       if (typeof applyWarnaSettings === 'function') {
         applyWarnaSettings(localSet);
       }
 
-      // Populate Header & Footer Branding
-      if (localSet.wilayah) {
-        const hw = document.getElementById('header-wilayah');
-        if (hw) hw.textContent = localSet.wilayah;
-        const fr = document.getElementById('footer-region');
-        if (fr) fr.textContent = localSet.wilayah;
-      }
-      if (localSet.nama_forum) {
-        const fn = document.getElementById('footer-forum-name');
-        if (fn) fn.textContent = localSet.nama_forum;
-      }
-      if (localSet.singkatan_forum) {
-        const fc = document.getElementById('footer-copyright-name');
-        if (fc) fc.textContent = localSet.singkatan_forum;
-      }
-      if (localSet.alamat) {
-        const fa = document.getElementById('footer-address');
-        if (fa) fa.textContent = localSet.alamat;
-      }
-      if (localSet.telp) {
-        const fp = document.getElementById('footer-phone');
-        if (fp) fp.textContent = localSet.telp;
-        let cleanTelp = String(localSet.telp).replace(/[^0-9]/g, '');
-        if (cleanTelp.startsWith('0')) cleanTelp = '62' + cleanTelp.substring(1);
-        const fpl = document.getElementById('footer-phone-link');
-        if (fpl) fpl.href = 'https://wa.me/' + cleanTelp;
-      }
-      if (localSet.email) {
-        const fe = document.getElementById('footer-email');
-        if (fe) fe.textContent = localSet.email;
-        const fel = document.getElementById('footer-email-link');
-        if (fel) fel.href = 'mailto:' + localSet.email;
-      }
-      if (localSet.website) {
-        const fw = document.getElementById('footer-website');
-        if (fw) {
-          const website = String(localSet.website);
-          fw.textContent = website.replace(/^https?:\/\//, '');
-          fw.href = website.startsWith('http') ? website : 'https://' + website;
+      function applyBranding(conf) {
+        if (!conf) return;
+        if (conf.wilayah) {
+          const hw = document.getElementById('header-wilayah');
+          if (hw) hw.textContent = conf.wilayah;
+          const fr = document.getElementById('footer-region');
+          if (fr) fr.textContent = conf.wilayah;
+        }
+        if (conf.nama_forum) {
+          const fn = document.getElementById('footer-forum-name');
+          if (fn) fn.textContent = conf.nama_forum;
+        }
+        if (conf.singkatan_forum) {
+          const fc = document.getElementById('footer-copyright-name');
+          if (fc) fc.textContent = conf.singkatan_forum;
+        }
+        if (conf.alamat) {
+          const fa = document.getElementById('footer-address');
+          if (fa) fa.textContent = conf.alamat;
+        }
+        if (conf.telp) {
+          const fp = document.getElementById('footer-phone');
+          if (fp) fp.textContent = conf.telp;
+          let cleanTelp = String(conf.telp).replace(/[^0-9]/g, '');
+          if (cleanTelp.startsWith('0')) cleanTelp = '62' + cleanTelp.substring(1);
+          const fpl = document.getElementById('footer-phone-link');
+          if (fpl) fpl.href = 'https://wa.me/' + cleanTelp;
+        }
+        if (conf.email) {
+          const fe = document.getElementById('footer-email');
+          if (fe) fe.textContent = conf.email;
+          const fel = document.getElementById('footer-email-link');
+          if (fel) fel.href = 'mailto:' + conf.email;
+        }
+        if (conf.website) {
+          const fw = document.getElementById('footer-website');
+          if (fw) {
+            const website = String(conf.website);
+            fw.textContent = website.replace(/^https?:\/\//, '');
+            fw.href = website.startsWith('http') ? website : 'https://' + website;
+          }
+        }
+        if (conf.logo_forum) {
+          const fl = document.getElementById('footer-logo');
+          if (fl) { fl.src = conf.logo_forum; fl.style.display = 'block'; }
+          const hl = document.getElementById('header-logo-img');
+          if (hl) { hl.src = conf.logo_forum; hl.style.display = 'block'; }
+          const hs = document.getElementById('header-logo-svg');
+          if (hs) hs.style.display = 'none';
         }
       }
-      if (localSet.logo_forum) {
-        const fl = document.getElementById('footer-logo');
-        if (fl) { fl.src = localSet.logo_forum; fl.style.display = 'block'; }
-        const hl = document.getElementById('header-logo-img');
-        if (hl) { hl.src = localSet.logo_forum; hl.style.display = 'block'; }
-        const hs = document.getElementById('header-logo-svg');
-        if (hs) hs.style.display = 'none';
-      }
 
-      // Load All News
-      const newsRes = await fetchAPI('getNews', {});
-      const container = document.getElementById('all-news-container');
+      applyBranding(localSet);
 
-      if (newsRes.status === 'success' && newsRes.data) {
-        const published = newsRes.data.filter(n => n.is_published);
+      // 2. FUNGSI RENDER BERITA LENGKAP
+      function renderAllNews(newsList) {
+        const container = document.getElementById('all-news-container');
+        if (!container) return;
+
+        const published = (newsList || []).filter(n => n && n.is_published);
         if (published.length > 0) {
           container.innerHTML = published.map(n => {
-            const baseDomain = (localSet.domain_resmi || localSet.website || 'https://www.mktas-tebo.or.id').replace(/\/+$/, '');
+            const curSet = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_settings', {}) : JSON.parse(localStorage.getItem('mktas_settings') || '{}');
+            const baseDomain = (curSet.domain_resmi || curSet.website || 'https://www.mktas-tebo.or.id').replace(/\/+$/, '');
             const slug = n.slug || (typeof generateNewsSlug === 'function' ? generateNewsSlug(n.title, n.date) : n.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
-            const detailUrl = (window.location.protocol.startsWith('http') && !window.location.hostname.includes('github.io')) 
-              ? `${baseDomain}/berita/${slug}.html` 
+            const detailUrl = (window.location.protocol.startsWith('http') && !window.location.hostname.includes('github.io'))
+              ? `${baseDomain}/berita/${slug}.html`
               : `berita/${slug}.html`;
-            // Hapus tag HTML dari konten untuk preview
-            const cleanContent = String(n.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-            
+
             return `
               <div class="news-card shadow" onclick="window.location.href='${detailUrl}'">
                 <img src="${n.image_url || 'https://via.placeholder.com/120x80?text=News'}" class="news-img" alt="Berita">
@@ -254,22 +253,80 @@
             `;
           }).join('');
         } else {
-          container.innerHTML = '<p class="text-muted" style="grid-column: 1 / -1;">Belum ada berita dipublikasikan.</p>';
+          container.innerHTML = '<p class="text-muted" style="grid-column: 1 / -1; text-align:center; padding: 40px 0;">Belum ada berita dipublikasikan.</p>';
         }
-      } else {
-        container.innerHTML = '<p class="text-muted" style="grid-column: 1 / -1;">Gagal memuat berita.</p>';
       }
 
-      // Load Socials (Footer)
-      const socRes = await fetchAPI('getSocials', {});
-      const socContainer = document.getElementById('social-container');
-      if (socRes.status === 'success' && socRes.data && socRes.data.length > 0) {
-        socContainer.innerHTML = socRes.data.map(s => `
-            <a href="${s.url}" target="_blank" title="${s.platform}"><i class="${s.icon || 'fa-solid fa-link'}"></i></a>
-          `).join('');
+      function renderSocials(socData) {
+        const socContainer = document.getElementById('social-container');
+        if (socContainer && Array.isArray(socData) && socData.length > 0) {
+          socContainer.innerHTML = socData.map(s => `
+              <a href="${s.url}" target="_blank" title="${s.platform}"><i class="${s.icon || 'fa-solid fa-link'}"></i></a>
+            `).join('');
+        }
       }
+
+      // 3. STEP A: TAMPILKAN CACHE INSTAN (0.00 DETIK)
+      const cachedVersion = localStorage.getItem('mktas_data_version') || '';
+      const cachedNews = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_news', []) : JSON.parse(localStorage.getItem('mktas_news') || '[]');
+      const cachedSocials = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_socials', []) : JSON.parse(localStorage.getItem('mktas_socials') || '[]');
+
+      if (Array.isArray(cachedNews) && cachedNews.length > 0) {
+        renderAllNews(cachedNews);
+      }
+      if (Array.isArray(cachedSocials) && cachedSocials.length > 0) {
+        renderSocials(cachedSocials);
+      }
+
+      // 4. STEP B: CEK VERSI DI LATAR BELAKANG (SUPER RINGAN & HEMAT SPREADSHEET)
+      function fetchNewsOnline(newVer) {
+        fetchAPI('getNews', {}).then(newsRes => {
+          if (newsRes && newsRes.status === 'success' && Array.isArray(newsRes.data)) {
+            localStorage.setItem('mktas_news', JSON.stringify(newsRes.data));
+            if (newVer) localStorage.setItem('mktas_data_version', newVer);
+            renderAllNews(newsRes.data);
+          } else if (!cachedNews || cachedNews.length === 0) {
+            const c = document.getElementById('all-news-container');
+            if (c) c.innerHTML = '<p class="text-muted" style="grid-column: 1 / -1; text-align:center;">Gagal memuat berita.</p>';
+          }
+        }).catch(err => {
+          console.warn('[Cache] Gagal memuat berita online:', err);
+          if (!cachedNews || cachedNews.length === 0) {
+            const c = document.getElementById('all-news-container');
+            if (c) c.innerHTML = '<p class="text-muted" style="grid-column: 1 / -1; text-align:center;">Koneksi terputus. Silakan coba beberapa saat lagi.</p>';
+          }
+        });
+      }
+
+      fetchAPI('getDataVersion', {}).then(vRes => {
+        const serverVersion = (vRes && vRes.status === 'success' && vRes.version) ? String(vRes.version) : '';
+
+        // JIKA VERSI COCOK & CACHE ADA: NOL PANGGILAN SPREADSHEET!
+        if (serverVersion && serverVersion === cachedVersion && cachedNews && cachedNews.length > 0) {
+          console.log('[Cache] Berita versi cocok (' + serverVersion + '). Nol panggilan spreadsheet.');
+          return;
+        }
+
+        console.log('[Cache] Versi berita baru terdeteksi (' + serverVersion + '), memuat dari server...');
+        fetchNewsOnline(serverVersion);
+
+        // Update medsos & settings jika cache kosong
+        if (!cachedSocials || cachedSocials.length === 0) {
+          fetchAPI('getSocials', {}).then(socRes => {
+            if (socRes && socRes.status === 'success' && Array.isArray(socRes.data)) {
+              localStorage.setItem('mktas_socials', JSON.stringify(socRes.data));
+              renderSocials(socRes.data);
+            }
+          }).catch(() => { });
+        }
+      }).catch(err => {
+        console.warn('[Cache] Pengecekan versi offline/gagal:', err);
+        if (!cachedNews || cachedNews.length === 0) {
+          fetchNewsOnline('');
+        }
+      });
       // --- SCROLL TO TOP LOGIC ---
-      window.addEventListener('scroll', function() {
+      window.addEventListener('scroll', function () {
         const btn = document.getElementById('btn-scroll-top');
         if (btn) {
           if (window.scrollY > 300) {
@@ -279,7 +336,7 @@
           }
         }
       });
-      window.scrollToTop = function() {
+      window.scrollToTop = function () {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       };
     });
