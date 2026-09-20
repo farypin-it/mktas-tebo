@@ -91,6 +91,12 @@ function isNewsOwner(newsItem, user) {
   if (!user || user.role !== 'Sekolah') return true; // Admin & Superadmin memiliki akses penuh
   if (!newsItem) return false;
 
+  // 1. Cek riwayat ID berita yang dibuat oleh browser/perangkat ini (instan & pasti lolos)
+  const myNewsIds = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_my_news_ids', []) : [];
+  if (newsItem.id && myNewsIds.map(String).includes(String(newsItem.id))) {
+    return true;
+  }
+
   const rawCreator = String(newsItem.created_by || '').trim();
   if (!rawCreator) return false; // Berita default/tanpa creator adalah milik Admin
 
@@ -99,18 +105,19 @@ function isNewsOwner(newsItem, user) {
     return false; // Dibuat oleh Admin -> terkunci bagi akun sekolah
   }
 
-  // Identitas sekolah saat ini
-  const schoolId = String(user.school_id || '').trim().toLowerCase();
-  const username = String(user.username || '').trim().toLowerCase();
-  const userId = String(user.id || '').trim().toLowerCase();
-  const npsn = String(user.npsn || '').trim().toLowerCase();
-  const nama = String(user.nama || '').trim().toLowerCase();
+  // 2. Kumpulan identitas sekolah pengguna saat ini
+  const userIdentifiers = [
+    String(user.school_id || '').trim().toLowerCase(),
+    String(user.username || '').trim().toLowerCase(),
+    String(user.id || '').trim().toLowerCase(),
+    String(user.npsn || '').trim().toLowerCase(),
+    String(user.nama || '').trim().toLowerCase(),
+    String(user.nama_sekolah || '').trim().toLowerCase()
+  ].filter(id => id && id !== '-' && id !== 'undefined' && id !== 'null');
 
-  return (schoolId && lowerCreator === schoolId) ||
-         (username && lowerCreator === username) ||
-         (userId && lowerCreator === userId) ||
-         (npsn && lowerCreator === npsn) ||
-         (nama && lowerCreator === nama);
+  return userIdentifiers.some(uid => {
+    return lowerCreator === uid || lowerCreator.includes(uid) || uid.includes(lowerCreator);
+  });
 }
 
 function renderNewsTable(newsData) {
@@ -234,7 +241,7 @@ function editNews(n) {
 
     const activeUser = window.currentUser || (typeof currentUser !== 'undefined' ? currentUser : null) || safeReadJsonStorage('mktas_user', {});
     const creatorId = (activeUser && activeUser.role === 'Sekolah')
-      ? (activeUser.school_id || activeUser.username || activeUser.id || 'Sekolah')
+      ? ((activeUser.school_id && activeUser.school_id !== '-') ? activeUser.school_id : (activeUser.username || activeUser.id || 'Sekolah'))
       : 'Admin';
 
     const data = {
@@ -255,6 +262,32 @@ function editNews(n) {
     const res = await fetchAPI(action, data);
     
     if (res.status === 'success') {
+      const savedId = res.id || (_editNewsId ? _editNewsId : null);
+      if (savedId) {
+        try {
+          const myNews = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_my_news_ids', []) : [];
+          if (!myNews.map(String).includes(String(savedId))) {
+            myNews.push(String(savedId));
+            localStorage.setItem('mktas_my_news_ids', JSON.stringify(myNews));
+          }
+        } catch (e) {}
+
+        // Update langsung local cache mktas_news agar tampil instan dengan created_by yang tepat
+        try {
+          const cachedNews = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_news', []) : [];
+          if (_editNewsId) {
+            const idx = cachedNews.findIndex(n => String(n.id) === String(_editNewsId));
+            if (idx !== -1) {
+              cachedNews[idx] = Object.assign({}, cachedNews[idx], data, { id: _editNewsId, created_by: creatorId });
+            }
+          } else {
+            cachedNews.unshift(Object.assign({}, data, { id: savedId, created_by: creatorId }));
+          }
+          localStorage.setItem('mktas_news', JSON.stringify(cachedNews));
+          renderNewsTable(cachedNews);
+        } catch (e) {}
+      }
+
       let publishUrl = '';
       // Backend add/updateNews sudah membuat file GitHub satu kali.
       if (data.is_published) {
@@ -317,6 +350,19 @@ async function deleteNews(id) {
   if (conf.isConfirmed) {
     const res = await fetchAPI('deleteNews', { id });
     if (res && res.status === 'success') {
+      try {
+        const myNews = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_my_news_ids', []) : [];
+        const filteredMyNews = myNews.filter(nId => String(nId) !== String(id));
+        localStorage.setItem('mktas_my_news_ids', JSON.stringify(filteredMyNews));
+      } catch (e) {}
+
+      try {
+        const cachedNews = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_news', []) : [];
+        const filteredCached = cachedNews.filter(n => String(n.id) !== String(id));
+        localStorage.setItem('mktas_news', JSON.stringify(filteredCached));
+        renderNewsTable(filteredCached);
+      } catch (e) {}
+
       Swal.fire({ icon: 'success', title: 'Dihapus!', timer: 1500, showConfirmButton: false });
     } else {
       Swal.fire('Gagal', (res && res.message) ? res.message : 'Gagal menghapus berita.', 'error');
