@@ -1539,45 +1539,26 @@
     async function loadDaftarAnggota() {
       const tbody = document.getElementById('tbody-daftar-anggota');
       const badgeTotal = document.getElementById('badge-total-anggota');
-      try {
-        if (tbody) {
-          tbody.innerHTML = `
-            <tr>
-              <td colspan="5" style="text-align:center;padding:35px;color:#64748b;">
-                <i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;font-size:1.1rem;color:var(--primary-color);"></i> Memuat data seluruh anggota...
-              </td>
-            </tr>
-          `;
-        }
 
-        // Fetch staff and schools in parallel
-        const [stfRes, schRes] = await Promise.all([
-          fetchAPI('getStaff', {}),
-          fetchAPI('getSchools', {})
-        ]);
+      // 1. Tampilkan dari cache seketika jika ada (0 ms)
+      const localStaff = JSON.parse(localStorage.getItem('mktas_staff_all') || '[]');
+      const localSchools = JSON.parse(localStorage.getItem('mktas_schools') || '[]');
+      const cachedVer = localStorage.getItem('mktas_data_version') || '';
 
+      const processAndRenderList = (staffArr, schoolsArr) => {
         const schoolMap = {};
-        if (schRes && schRes.status === 'success' && Array.isArray(schRes.data)) {
-          schRes.data.forEach(sc => {
+        if (Array.isArray(schoolsArr)) {
+          schoolsArr.forEach(sc => {
             if (sc && sc.id) schoolMap[sc.id] = sc.nama || '-';
           });
         }
-
-        let rawList = [];
-        if (stfRes && stfRes.status === 'success' && Array.isArray(stfRes.data)) {
-          rawList = stfRes.data;
-        }
-
-        // Standardize list item
-        _allAnggotaList = rawList.map(item => {
+        _allAnggotaList = staffArr.map(item => {
           const schName = (item.sekolah_nama || schoolMap[item.school_id] || '-').trim();
           const nama = (item.nama_lengkap || item.nama || '-').trim();
-          
           let jk = (item.jenis_kelamin || '').trim().toUpperCase();
           if (jk.startsWith('L') || jk === 'LAKI-LAKI') jk = 'L';
           else if (jk.startsWith('P') || jk === 'PEREMPUAN') jk = 'P';
           else jk = '-';
-
           const status = (item.status_pegawai || '-').trim();
           return {
             ...item,
@@ -1587,25 +1568,60 @@
             clean_status: status
           };
         });
-
-        // SORTING:
-        // 1. Berurutan berdasarkan nama sekolah secara alfabetis (semua pegawai pada sekolah yang sama berkumpul)
-        // 2. Berurutan berdasarkan nama pegawai di sekolah tersebut
         _allAnggotaList.sort((a, b) => {
           const compSch = a.clean_sekolah.localeCompare(b.clean_sekolah, 'id', { numeric: true, sensitivity: 'base' });
           if (compSch !== 0) return compSch;
           return a.clean_nama.localeCompare(b.clean_nama, 'id', { sensitivity: 'base' });
         });
-
         _isAnggotaLoaded = true;
         renderTableAnggota(_allAnggotaList);
+      };
 
-      } catch (err) {
-        console.error('Error loadDaftarAnggota:', err);
-        if (tbody) {
-          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:#ef4444;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;"></i> Gagal memuat data anggota. Silakan periksa koneksi.</td></tr>`;
+      if (Array.isArray(localStaff) && localStaff.length > 0) {
+        processAndRenderList(localStaff, localSchools);
+      } else if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align:center;padding:35px;color:#64748b;">
+              <i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;font-size:1.1rem;color:var(--primary-color);"></i> Memuat data seluruh anggota...
+            </td>
+          </tr>
+        `;
+      }
+
+      // 2. Cek versi data di latar belakang
+      try {
+        const vRes = await fetchAPI('getDataVersion', {});
+        const serverVer = (vRes && vRes.status === 'success' && vRes.version) ? String(vRes.version) : '';
+
+        if (serverVer && serverVer === cachedVer && Array.isArray(localStaff) && localStaff.length > 0) {
+          return; // Versi data cocok & sudah tampil dari cache: SELESAI (0 spreadsheet calls)
         }
-        if (badgeTotal) badgeTotal.textContent = 'Gagal memuat';
+
+        const [stfRes, schRes] = await Promise.all([
+          fetchAPI('getStaff', {}),
+          fetchAPI('getSchools', {})
+        ]);
+
+        const rawList = (stfRes && stfRes.status === 'success' && Array.isArray(stfRes.data)) ? stfRes.data : [];
+        const schList = (schRes && schRes.status === 'success' && Array.isArray(schRes.data)) ? schRes.data : [];
+
+        if (rawList.length > 0) {
+          if (serverVer) localStorage.setItem('mktas_data_version', serverVer);
+          try {
+            localStorage.setItem('mktas_staff_all', JSON.stringify(rawList));
+            if (schList.length > 0) localStorage.setItem('mktas_schools', JSON.stringify(schList));
+          } catch(e) {}
+          processAndRenderList(rawList, schList);
+        }
+      } catch (err) {
+        console.error('Error loadDaftarAnggota background fetch:', err);
+        if (!localStaff || localStaff.length === 0) {
+          if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:#ef4444;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;"></i> Gagal memuat data anggota. Silakan periksa koneksi.</td></tr>`;
+          }
+          if (badgeTotal) badgeTotal.textContent = 'Gagal memuat';
+        }
       }
     }
 
