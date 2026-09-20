@@ -644,11 +644,12 @@ function renderLaporanTable() {
     html = `<tr><td colspan="5" style="text-align:center; color: var(--text-muted);">Belum ada jadwal terlaksana / sesuai filter.</td></tr>`;
   } else {
     paginatedData.forEach((item) => {
+      const tglFormatted = item.tanggal ? new Date(item.tanggal).toLocaleDateString("id-ID") : '-';
       html += `<tr>
-                  <td>${item.tahun}</td>
-                  <td>${item.bulan}</td>
-                  <td><b>${item.sekolah}</b></td>
-                  <td>${new Date(item.tanggal).toLocaleDateString("id-ID")}</td>
+                  <td><b>${item.sekolah || '-'}</b></td>
+                  <td>${item.tahun || '-'}</td>
+                  <td>${item.bulan || '-'}</td>
+                  <td>${tglFormatted}</td>
                   <td style="text-align: center;">
                     <button class="btn btn-sm btn-primary" onclick="openLaporanDetail('${item.id}')">Lihat Laporan</button>
                   </td>
