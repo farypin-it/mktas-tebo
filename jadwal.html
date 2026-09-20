@@ -4,10 +4,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Jadwal Lengkap - SIM MKTAS</title>
+  <title>Jadwal Lengkap - Portal MKTAS</title>
   <link rel="stylesheet" href="css/style.css" />
   <script>
-    (function() {
+    (function () {
       try {
         var s = JSON.parse(localStorage.getItem('mktas_settings') || '{}');
         var r = document.documentElement;
@@ -24,7 +24,7 @@
         r.style.setProperty('--gradient-sidebar', 'linear-gradient(180deg, ' + p + ' 0%, ' + a2 + ' 100%)');
         r.style.setProperty('--gradient-accent', 'linear-gradient(135deg, ' + p + ' 0%, ' + a1 + ' 100%)');
         r.style.setProperty('--gradient-text', 'linear-gradient(135deg, ' + p + ' 0%, ' + a2 + ' 100%)');
-      } catch(e) {}
+      } catch (e) { }
     })();
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -32,6 +32,7 @@
     html {
       scroll-behavior: smooth;
     }
+
     .btn-scroll-top {
       position: fixed;
       bottom: 30px;
@@ -54,16 +55,19 @@
       transform: translateY(20px);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
+
     .btn-scroll-top.show {
       opacity: 1;
       visibility: visible;
       transform: translateY(0);
     }
+
     .btn-scroll-top:hover {
       background: var(--gradient-hover, var(--primary-hover, #4338ca));
       transform: translateY(-3px);
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
     }
+
     .public-footer {
       background: #1f2937;
       color: white;
@@ -102,8 +106,6 @@
     .social-links a:hover {
       color: var(--primary-color);
     }
-
-
   </style>
 </head>
 
@@ -117,7 +119,8 @@
         </svg>
         <img id="header-logo-img" src="" alt="Logo"
           style="width: 38px; height: 38px; object-fit: contain; display: none;" />
-        <div style="display: flex; flex-direction: column; justify-content: center; text-align: left; line-height: 1.15;">
+        <div
+          style="display: flex; flex-direction: column; justify-content: center; text-align: left; line-height: 1.15;">
           <div style="font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px;">
             <span style="color: #f97316;">Portal</span> <span style="color: #2563eb;">MKTAS</span>
           </div>
@@ -149,10 +152,12 @@
       Jadwal Kegiatan Terlaksana</h2>
 
     <div style="margin-bottom: 15px;">
-      <input type="text" id="search-jadwal" class="form-control" placeholder="Cari berdasarkan nama sekolah..." onkeyup="renderTable()">
+      <input type="text" id="search-jadwal" class="form-control" placeholder="Cari berdasarkan nama sekolah..."
+        onkeyup="renderTable()">
     </div>
 
-    <div class="table-container" style="background: white; border-radius: var(--card-radius); padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-x: auto;">
+    <div class="table-container"
+      style="background: white; border-radius: var(--card-radius); padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-x: auto;">
       <table id="table-jadwal" style="width: 100%; border-collapse: collapse;">
         <thead>
           <tr style="background: var(--primary-color); color: white;">
@@ -164,24 +169,33 @@
           </tr>
         </thead>
         <tbody>
-          <tr><td colspan="5" style="text-align: center; padding: 20px;"><div class="loader" style="margin: 0 auto;"></div></td></tr>
+          <tr>
+            <td colspan="5" style="text-align: center; padding: 20px;">
+              <div class="loader" style="margin: 0 auto;"></div>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
 
-    <div id="jadwal-year-pagination" style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:20px; padding: 12px 14px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+    <div id="jadwal-year-pagination"
+      style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:20px; padding: 12px 14px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
       <button id="btn-prev-year" type="button" class="btn btn-outline" style="min-width:120px;">Sebelumnya</button>
       <div id="text-year-page" style="font-weight:700; color: var(--text-dark); text-align:center;">Tahun</div>
       <button id="btn-next-year" type="button" class="btn btn-primary" style="min-width:120px;">Berikutnya</button>
     </div>
   </main>
-  
+
   <!-- Popup Modal untuk Slider Foto Kegiatan -->
-  <div class="modal" id="modal-foto-kegiatan" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8);">
-    <div class="modal-content" style="background-color: #fff; margin: 5% auto; padding: 20px; width: 90%; max-width: 800px; border-radius: 12px; position: relative;">
-      <span class="close-btn" onclick="document.getElementById('modal-foto-kegiatan').style.display='none'" style="position: absolute; right: 20px; top: 15px; font-size: 28px; cursor: pointer;">&times;</span>
+  <div class="modal" id="modal-foto-kegiatan"
+    style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8);">
+    <div class="modal-content"
+      style="background-color: #fff; margin: 5% auto; padding: 20px; width: 90%; max-width: 800px; border-radius: 12px; position: relative;">
+      <span class="close-btn" onclick="document.getElementById('modal-foto-kegiatan').style.display='none'"
+        style="position: absolute; right: 20px; top: 15px; font-size: 28px; cursor: pointer;">&times;</span>
       <h3 style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">Foto Kegiatan</h3>
-      <div id="foto-kegiatan-container" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-height: 70vh; overflow-y: auto;">
+      <div id="foto-kegiatan-container"
+        style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-height: 70vh; overflow-y: auto;">
         <!-- Images injected here -->
       </div>
     </div>
@@ -200,10 +214,10 @@
         if (typeof fetchAPI !== 'undefined') {
           const res = await fetchAPI('getSettings', {});
           if (res && res.status === 'success' && res.data) {
-              localSet = typeof mergeSettings === 'function' ? mergeSettings(localSet, res.data) : Object.assign(localSet, res.data);
+            localSet = typeof mergeSettings === 'function' ? mergeSettings(localSet, res.data) : Object.assign(localSet, res.data);
           }
         }
-      } catch (e) {}
+      } catch (e) { }
 
       if (typeof applyWarnaSettings === 'function') {
         applyWarnaSettings(localSet);
@@ -263,11 +277,11 @@
       const tbody = document.querySelector('#table-jadwal tbody');
       let cachedSchedules = [];
       let cachedKoordMap = {};
-      
+
       try {
         cachedSchedules = JSON.parse(localStorage.getItem('mktas_schedules') || '[]');
         cachedKoordMap = JSON.parse(localStorage.getItem('mktas_koordmap') || '{}');
-      } catch (e) {}
+      } catch (e) { }
 
       let allPastSchedules = [];
       let currentYearPage = 1;
@@ -332,7 +346,7 @@
         if (nextBtn) nextBtn.disabled = currentYearPage === totalPages;
       }
 
-      window.changeYearPage = function(step) {
+      window.changeYearPage = function (step) {
         const searchVal = document.getElementById('search-jadwal').value.toLowerCase();
         const filtered = allPastSchedules.filter(s => !searchVal || (s.sekolah || '').toLowerCase().includes(searchVal));
         const groups = getYearGroups(filtered);
@@ -345,7 +359,7 @@
         renderTable();
       };
 
-      window.renderTable = function() {
+      window.renderTable = function () {
         const searchVal = document.getElementById('search-jadwal').value.toLowerCase();
         const filtered = allPastSchedules.filter(s => !searchVal || (s.sekolah || '').toLowerCase().includes(searchVal));
         const groups = getYearGroups(filtered);
@@ -408,29 +422,31 @@
         renderTable();
       }
 
-      // Refresh data via API agar up-to-date
-      fetchAPI('getSchedules', {}).then(jdwRes => {
-        let updated = false;
-
-        if (jdwRes && jdwRes.status === 'success' && jdwRes.data) {
-          localStorage.setItem('mktas_schedules', JSON.stringify(jdwRes.data));
-          allPastSchedules = jdwRes.data.filter(s => s.keterangan === 'Terlaksana').sort((a, b) => {
-            const dateA = new Date(a.tanggal || 0).getTime();
-            const dateB = new Date(b.tanggal || 0).getTime();
-            return dateB - dateA;
-          });
-          currentYearPage = 1;
-          updated = true;
+      // Refresh data via API hanya jika versi berubah di server
+      const cachedVer = localStorage.getItem('mktas_data_version') || '';
+      fetchAPI('getDataVersion', {}).then(vRes => {
+        const serverVer = (vRes && vRes.status === 'success' && vRes.version) ? String(vRes.version) : '';
+        if (serverVer && serverVer === cachedVer && cachedSchedules && cachedSchedules.length > 0) {
+          return; // Versi data identik, 0 spreadsheet calls!
         }
-
-        if (updated || (!cachedSchedules || cachedSchedules.length === 0)) {
-           renderTable();
-        }
+        return fetchAPI('getSchedules', {}).then(jdwRes => {
+          if (jdwRes && jdwRes.status === 'success' && jdwRes.data) {
+            if (serverVer) localStorage.setItem('mktas_data_version', serverVer);
+            localStorage.setItem('mktas_schedules', JSON.stringify(jdwRes.data));
+            allPastSchedules = jdwRes.data.filter(s => s.keterangan === 'Terlaksana').sort((a, b) => {
+              const dateA = new Date(a.tanggal || 0).getTime();
+              const dateB = new Date(b.tanggal || 0).getTime();
+              return dateB - dateA;
+            });
+            currentYearPage = 1;
+            renderTable();
+          }
+        });
       }).catch(err => {
         console.error('Failed to load schedules:', err);
       });
 
-      window.showFotoKegiatan = function(fotoStr) {
+      window.showFotoKegiatan = function (fotoStr) {
         const container = document.getElementById('foto-kegiatan-container');
         container.innerHTML = '';
         if (fotoStr) {
@@ -451,16 +467,27 @@
         document.getElementById('modal-foto-kegiatan').style.display = 'block';
       };
 
-      // Load Socials (Footer)
-      const socRes = await fetchAPI('getSocials', {});
+      // Load Socials (Footer) - Prioritaskan Cache
       const socContainer = document.getElementById('social-container');
-      if (socRes.status === 'success' && socRes.data && socRes.data.length > 0) {
-        socContainer.innerHTML = socRes.data.map(s => `
-            <a href="${s.url}" target="_blank" title="${s.platform}"><i class="${s.icon || 'fa-solid fa-link'}"></i></a>
-          `).join('');
+      const localSocials = JSON.parse(localStorage.getItem('mktas_socials') || '[]');
+      if (socContainer && Array.isArray(localSocials) && localSocials.length > 0) {
+        socContainer.innerHTML = localSocials.map(s => `
+          <a href="${s.url}" target="_blank" title="${s.platform}"><i class="${s.icon || 'fa-solid fa-link'}"></i></a>
+        `).join('');
+      } else {
+        fetchAPI('getSocials', {}).then(socRes => {
+          if (socRes && socRes.status === 'success' && socRes.data && socRes.data.length > 0) {
+            try { localStorage.setItem('mktas_socials', JSON.stringify(socRes.data)); } catch(e) {}
+            if (socContainer) {
+              socContainer.innerHTML = socRes.data.map(s => `
+                <a href="${s.url}" target="_blank" title="${s.platform}"><i class="${s.icon || 'fa-solid fa-link'}"></i></a>
+              `).join('');
+            }
+          }
+        }).catch(() => {});
       }
       // --- SCROLL TO TOP LOGIC ---
-      window.addEventListener('scroll', function() {
+      window.addEventListener('scroll', function () {
         const btn = document.getElementById('btn-scroll-top');
         if (btn) {
           if (window.scrollY > 300) {
@@ -470,7 +497,7 @@
           }
         }
       });
-      window.scrollToTop = function() {
+      window.scrollToTop = function () {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       };
     });
