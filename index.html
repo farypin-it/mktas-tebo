@@ -74,16 +74,16 @@
     .stats-container {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
+      gap: 16px;
       margin-top: -30px;
       position: relative;
       z-index: 10;
-      margin-bottom: 40px;
+      margin-bottom: 12px;
     }
 
     .stat-card {
       text-align: center;
-      padding: 20px;
+      padding: 18px 14px;
       border-radius: var(--card-radius);
     }
 
@@ -95,10 +95,48 @@
     }
 
     .stat-label {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.8px;
+    }
+
+    /* Sub Stats Section: 6 Kotak Sejajar (Lk, Pr, PNS, PPPK, PPPK PW, Non ASN) */
+    .substats-container {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      position: relative;
+      z-index: 10;
+      margin-bottom: 35px;
+    }
+
+    .substat-card {
+      text-align: center;
+      padding: 10px 6px;
+      border-radius: var(--card-radius);
+      transition: var(--transition);
+    }
+
+    .substat-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .substat-number {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      font-family: 'Outfit', sans-serif;
+      line-height: 1.1;
+    }
+
+    .substat-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-top: 3px;
     }
 
     /* Grid Section */
@@ -258,30 +296,74 @@
         display: none !important;
       }
 
-      /* Stats tetap 3 kolom sejajar, ukuran dikecilkan */
+      /* Stats 3 Kotak Khusus HP: Lebih gepeng, angka di sebelah kiri teks, huruf kecil */
       .stats-container {
         grid-template-columns: repeat(3, 1fr) !important;
-        gap: 8px !important;
-        margin-top: 12px !important;
-        margin-bottom: 20px !important;
+        gap: 6px !important;
+        margin-top: 10px !important;
+        margin-bottom: 8px !important;
       }
 
       .stat-card {
-        padding: 10px 6px !important;
-        border-radius: 12px !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+        padding: 8px 5px !important;
+        border-radius: 10px !important;
+        min-height: 42px !important;
+        text-align: left !important;
       }
 
       .stat-number {
-        font-size: 1.3rem !important;
-        font-weight: 700;
-        line-height: 1.1;
+        font-size: 1.15rem !important;
+        font-weight: 700 !important;
+        line-height: 1 !important;
+        flex-shrink: 0 !important;
       }
 
       .stat-label {
-        font-size: 0.62rem !important;
-        letter-spacing: 0.4px !important;
-        margin-top: 3px !important;
-        line-height: 1.2;
+        font-size: 0.58rem !important;
+        letter-spacing: 0.2px !important;
+        margin-top: 0 !important;
+        line-height: 1.15 !important;
+        text-align: left !important;
+      }
+
+      /* Sub Stats 6 Kotak Khusus HP: Tetap sebaris (1 row), angka di atas teks, huruf kecil */
+      .substats-container {
+        grid-template-columns: repeat(6, 1fr) !important;
+        gap: 4px !important;
+        margin-top: 0 !important;
+        margin-bottom: 22px !important;
+      }
+
+      .substat-card {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 6px 2px !important;
+        border-radius: 8px !important;
+        min-height: 38px !important;
+        text-align: center !important;
+      }
+
+      .substat-number {
+        font-size: 0.92rem !important;
+        font-weight: 700 !important;
+        line-height: 1 !important;
+      }
+
+      .substat-label {
+        font-size: 0.52rem !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.1px !important;
+        margin-top: 2px !important;
+        line-height: 1 !important;
+        text-align: center !important;
+        white-space: nowrap !important;
       }
     }
 
@@ -424,6 +506,34 @@
       <div class="glass-panel stat-card">
         <div class="stat-number" id="stat-schedules">0</div>
         <div class="stat-label">Jadwal Terlaksana</div>
+      </div>
+    </div>
+
+    <!-- Sub Stats: 6 Kotak Sejajar (Lk, Pr, PNS, PPPK, PPPK PW, Non ASN) -->
+    <div class="substats-container">
+      <div class="glass-panel substat-card">
+        <div class="substat-number" id="stat-lk">0</div>
+        <div class="substat-label">Lk</div>
+      </div>
+      <div class="glass-panel substat-card">
+        <div class="substat-number" id="stat-pr">0</div>
+        <div class="substat-label">Pr</div>
+      </div>
+      <div class="glass-panel substat-card">
+        <div class="substat-number" id="stat-pns">0</div>
+        <div class="substat-label">PNS</div>
+      </div>
+      <div class="glass-panel substat-card">
+        <div class="substat-number" id="stat-pppk">0</div>
+        <div class="substat-label">PPPK</div>
+      </div>
+      <div class="glass-panel substat-card">
+        <div class="substat-number" id="stat-pppk-pw">0</div>
+        <div class="substat-label">PPPK PW</div>
+      </div>
+      <div class="glass-panel substat-card">
+        <div class="substat-number" id="stat-non-asn">0</div>
+        <div class="substat-label">Non ASN</div>
       </div>
     </div>
 
@@ -708,9 +818,22 @@
         const schEl = document.getElementById('stat-schools');
         const stfEl = document.getElementById('stat-staff');
         const jdwEl = document.getElementById('stat-schedules');
+        const lkEl = document.getElementById('stat-lk');
+        const prEl = document.getElementById('stat-pr');
+        const pnsEl = document.getElementById('stat-pns');
+        const pppkEl = document.getElementById('stat-pppk');
+        const pppkPwEl = document.getElementById('stat-pppk-pw');
+        const nonAsnEl = document.getElementById('stat-non-asn');
+
         if (schEl && stats.schools !== undefined) schEl.innerText = stats.schools;
         if (stfEl && stats.staff !== undefined) stfEl.innerText = stats.staff;
         if (jdwEl && stats.schedules !== undefined) jdwEl.innerText = stats.schedules;
+        if (lkEl && stats.lk !== undefined) lkEl.innerText = stats.lk;
+        if (prEl && stats.pr !== undefined) prEl.innerText = stats.pr;
+        if (pnsEl && stats.pns !== undefined) pnsEl.innerText = stats.pns;
+        if (pppkEl && stats.pppk !== undefined) pppkEl.innerText = stats.pppk;
+        if (pppkPwEl && stats.pppk_pw !== undefined) pppkPwEl.innerText = stats.pppk_pw;
+        if (nonAsnEl && stats.non_asn !== undefined) nonAsnEl.innerText = stats.non_asn;
       }
 
       function renderSchedules(schedules, sekolahKoordMap) {
@@ -885,7 +1008,32 @@
       const cachedSocials = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_socials', []) : JSON.parse(localStorage.getItem('mktas_socials') || '[]');
 
       if (Array.isArray(cachedSliders) && cachedSliders.length > 0) renderHeroSliders(cachedSliders);
-      if (cachedStats) renderStats(cachedStats);
+      if (cachedStats) {
+        if (cachedStats.lk === undefined) {
+          const cachedStaffAll = (typeof safeReadJsonStorage === 'function') ? safeReadJsonStorage('mktas_staff_all', []) : JSON.parse(localStorage.getItem('mktas_staff_all') || '[]');
+          if (Array.isArray(cachedStaffAll) && cachedStaffAll.length > 0) {
+            let lkCount = 0, prCount = 0, pnsCount = 0, pppkCount = 0, pppkPwCount = 0, nonAsnCount = 0;
+            cachedStaffAll.forEach(s => {
+              const jk = String(s.jenis_kelamin || '').trim().toLowerCase();
+              if (jk === 'l' || jk === 'laki-laki' || jk.indexOf('laki') !== -1) lkCount++;
+              else if (jk === 'p' || jk === 'perempuan' || jk.indexOf('perempuan') !== -1) prCount++;
+
+              const sp = String(s.status_pegawai || '').trim().toLowerCase();
+              if (sp.indexOf('pns') !== -1) pnsCount++;
+              else if (sp.indexOf('pppk pw') !== -1 || sp.indexOf('pppk-pw') !== -1 || sp.indexOf('paruh waktu') !== -1) pppkPwCount++;
+              else if (sp.indexOf('pppk') !== -1) pppkCount++;
+              else if (sp.indexOf('non') !== -1 || sp.indexOf('honorer') !== -1 || sp.indexOf('ptt') !== -1 || sp.indexOf('gtt') !== -1 || sp.indexOf('kontrak') !== -1) nonAsnCount++;
+            });
+            cachedStats.lk = lkCount;
+            cachedStats.pr = prCount;
+            cachedStats.pns = pnsCount;
+            cachedStats.pppk = pppkCount;
+            cachedStats.pppk_pw = pppkPwCount;
+            cachedStats.non_asn = nonAsnCount;
+          }
+        }
+        renderStats(cachedStats);
+      }
       if (Array.isArray(cachedSchedules) && cachedSchedules.length > 0) renderSchedules(cachedSchedules, cachedKoordMap);
       if (Array.isArray(cachedNews) && cachedNews.length > 0) renderNews(cachedNews);
       if (Array.isArray(cachedBoard) && cachedBoard.length > 0) renderBoard(cachedBoard);
@@ -953,13 +1101,38 @@
           const totalStaff = (stfRes.status === 'success' && stfRes.data) ? stfRes.data.length : 0;
           let schedules = (jdwRes.status === 'success' && jdwRes.data) ? jdwRes.data : [];
           
+          let lkCount = 0, prCount = 0, pnsCount = 0, pppkCount = 0, pppkPwCount = 0, nonAsnCount = 0;
+          if (stfRes.status === 'success' && Array.isArray(stfRes.data)) {
+            stfRes.data.forEach(s => {
+              const jk = String(s.jenis_kelamin || '').trim().toLowerCase();
+              if (jk === 'l' || jk === 'laki-laki' || jk.indexOf('laki') !== -1) lkCount++;
+              else if (jk === 'p' || jk === 'perempuan' || jk.indexOf('perempuan') !== -1) prCount++;
+
+              const sp = String(s.status_pegawai || '').trim().toLowerCase();
+              if (sp.indexOf('pns') !== -1) pnsCount++;
+              else if (sp.indexOf('pppk pw') !== -1 || sp.indexOf('pppk-pw') !== -1 || sp.indexOf('paruh waktu') !== -1) pppkPwCount++;
+              else if (sp.indexOf('pppk') !== -1) pppkCount++;
+              else if (sp.indexOf('non') !== -1 || sp.indexOf('honorer') !== -1 || sp.indexOf('ptt') !== -1 || sp.indexOf('gtt') !== -1 || sp.indexOf('kontrak') !== -1) nonAsnCount++;
+            });
+          }
+
           const sekolahKoordMap = {};
           if (schRes.status === 'success' && schRes.data) {
             schRes.data.forEach(sc => { if (sc.koordinat) sekolahKoordMap[sc.nama] = sc.koordinat; });
           }
 
           const past = schedules.filter(s => s.keterangan === 'Terlaksana');
-          const stats = { schools: totalSchools, staff: totalStaff, schedules: past.length };
+          const stats = {
+            schools: totalSchools,
+            staff: totalStaff,
+            schedules: past.length,
+            lk: lkCount,
+            pr: prCount,
+            pns: pnsCount,
+            pppk: pppkCount,
+            pppk_pw: pppkPwCount,
+            non_asn: nonAsnCount
+          };
 
           localStorage.setItem('mktas_stats', JSON.stringify(stats));
           localStorage.setItem('mktas_schedules', JSON.stringify(schedules));
