@@ -1086,21 +1086,19 @@
         <!-- Modals for Web Publik -->
         <!-- Modal Berita -->
         <div id="modal-berita" class="modal">
-          <div class="modal-content glass-panel"
-            style="max-width: 850px; max-height: 90vh; display: flex; flex-direction: column;">
-            <div class="modal-header" style="flex-shrink:0;">
+          <div class="modal-content glass-panel" style="max-width: 850px;">
+            <div class="modal-header">
               <h3>Tambah Berita</h3>
               <span class="close-modal" onclick="closeModalBerita()">&times;</span>
             </div>
-            <form id="form-berita" class="modal-body" onsubmit="saveNews(event)"
-              style="overflow-y: auto; flex: 1; padding: 20px;">
+            <form id="form-berita" class="modal-body" onsubmit="saveNews(event)">
               <!-- Baris 1: Judul -->
               <div class="form-group">
                 <label>Judul Berita</label>
                 <input type="text" id="news-title" class="form-control" required />
               </div>
               <!-- Baris 2: Tanggal + Upload Gambar (50-50) -->
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 15px;">
+              <div class="grid-2-col" style="margin-bottom: 15px;">
                 <div class="form-group" style="margin-bottom:0;">
                   <label>Waktu Publikasi</label>
                   <input type="datetime-local" id="news-date" class="form-control" required />
@@ -1116,7 +1114,7 @@
               <!-- Baris 3: Editor Quill -->
               <div class="form-group">
                 <label>Isi Berita</label>
-                <div id="editor-berita" style="height: 320px; background: #fff; border-radius: 0 0 8px 8px;"></div>
+                <div id="editor-berita" style="height: 280px; background: #fff; border-radius: 0 0 8px 8px;"></div>
               </div>
               <!-- Baris 4: Publish -->
               <div class="form-group" style="display: flex; gap: 10px; align-items: center; margin-top: 8px;">
